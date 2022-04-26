@@ -1,6 +1,9 @@
 ## Oreka, an opensource VoIP media capture and retrieval platform
 
-Based on [OrecX](http://www.orecx.com/open-source/) [Oreka](https://github.com/OrecX/Oreka), this project tries to provide a complete Call Recording (SIPREC) solution.  
+Based on [OrecX](http://www.orecx.com/open-source/) [Oreka](https://github.com/OrecX/Oreka), 
+This is the low level SIP Tapping component that listens to SIP call events and where it sees an event, create the metadata and then record the media via RTP. 
+
+It interfaces to another component through an embedded HTTP client (usually http://localhost:8080). The other project is SIPRecordingAgent.
 
 ### Components
 - **Orkaudio**:  
