@@ -26,6 +26,27 @@ Debian/Ubuntu specific
 * sudo apt-get install libsndfile1-dev
 * sudo apt-get install libspeex-dev
 
+
+All these for build 
+* sudo apt install make
+* sudo apt install autoconf
+* sudo apt install libtool
+* sudo apt install gawk
+* sudo apt-get install gcc
+* sudo apt-get install g++
+* sudo apt-get install build-essential
+
+All these are needed for orkaudio make
+
+* sudo apt install libssl-dev
+* sudo apt-get install libcap-dev
+* sudo apt-get install libboost-all-dev
+* sudo apt install libdw-dev
+* sudo apt install libunwind-dev
+* sudo apt install backward-cpp
+* sudo apt-get install binutils-dev 
+* sudo apt install  libbackward-cpp-dev
+
 Download and build opus and silk libraries
 * git clone https://github.com/OrecX/dependencies.git
 * tar -xf dependencies/opus-1.2.1.tar.gz
@@ -38,6 +59,14 @@ Download and build opus and silk libraries
 * tar -xf dependencies/silk.tgz -C /opt/
 * cd /opt/silk/SILKCodec/SILK_SDK_SRC_FIX/
 * sudo make clean lib
+
+#g729
+mkdir -p /opt/bcg729
+git clone --depth 1 https://github.com/BelledonneCommunications/bcg729.git /opt/bcg729
+cd /opt/bcg729
+cmake . -DCMAKE_INSTALL_PREFIX=/usr
+make
+make install
 
 
 Build orkbasecxx on the command line:
