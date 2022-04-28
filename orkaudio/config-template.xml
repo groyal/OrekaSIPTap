@@ -20,6 +20,8 @@
 	<DeleteNativeFile>yes</DeleteNativeFile>
 
 	<TrackerHostname>localhost</TrackerHostname>
+	<!-- this is the name of the instance on tomcat etc /orktrack/command -->
+	<TrackerServicename>orktrack</TrackerServicename>
     <TrackerTcpPort>8080</TrackerTcpPort>
     
 	<CapturePortFilters>LiveMonitoring</CapturePortFilters>
