@@ -27,7 +27,7 @@
 	<!-- prefixed with "https://"                                           -->
 	<!-- For example, https://localhost                                     -->
 	<TrackerHostname>localhost</TrackerHostname>
-	<TrackerTcpPort>8080</TrackerTcpPort>
+	<TrackerTcpPort>9000</TrackerTcpPort>
 	<!-- The default TlsClientCACertFile points to the self-signed          -->
 	<!-- certificate distributed with orkweb. If this has been changed,     -->
 	<!-- orkweb.pem must be updated.                                        -->
@@ -78,6 +78,7 @@
 		<!-- extract any arbitrary SIP field as a tag -->
 		<!--<SipExtractFields>X-Unique-ID</SipExtractFields> -->
 		<SdpOfferAnswerMode>true</SdpOfferAnswerMode>
+		<HoldResumeReportEvents>true</HoldResumeReportEvents>
 	</SipUAPlugin>
 	
 	<VoIpPlugin>
@@ -100,7 +101,7 @@
 
 		<!-- Use this if you want to force capture from a given list of devices. -->
 		<!-- All available devices are listed in orkaudio.log when the service is starting -->
-		<Devices>enx00e082312676</Devices>
+		<Devices>wlp4s0</Devices>
 		
 		<!--<PcapFilter>net 217.14.0.0/16 or host 10.0.0.1</PcapFilter>-->
 

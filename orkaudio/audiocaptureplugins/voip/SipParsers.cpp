@@ -1742,7 +1742,9 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		{
 			// Only log SIP non-INVITE messages that contain SDP (i.e. with a valid RTP port)
 			info->ToString(logMsg);
-			logMsg = sipMethod + ": " + logMsg;
+
+			// here is the logging out for SIP messaging
+			logMsg = sipMethod + ":" + logMsg;
 			LOG4CXX_INFO(s_sipPacketLog, logMsg);
 		}
 

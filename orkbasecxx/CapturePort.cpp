@@ -282,7 +282,12 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 		ImmediateProcessing::GetInstance()->AddAudioTape(m_audioTapeRef);
 	}
 }
+/* ---------------------------------------------------------------------------------
 
+	ADD CAPTURE EVENT
+
+
+-------------------------------------------------------------------------------------- */
 void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 {
 	FilterCaptureEvent(eventRef);

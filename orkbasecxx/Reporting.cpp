@@ -57,6 +57,7 @@ TapeProcessorRef Reporting::m_singleton;
 static std::map<CStdString, ReportingThreadInfoRef> s_reportingThreads;
 static std::vector<ReportingThreadInfoRef> s_reportingThreadsVector;
 
+//----------------------------------------------------------------------------------------------------------------------------
 void Reporting::Initialize()
 {
 	CStdString logMsg;
@@ -81,6 +82,7 @@ void Reporting::Initialize()
 	}
 }
 
+//----------------------------------------------------------------------------------------------------------
 void Reporting::ReportingThreadEntryPoint(void *args)
 {
 
@@ -110,29 +112,29 @@ void Reporting::ReportingThreadEntryPoint(void *args)
 
 	myRunInfo.Run();
 }
-
+// ---------------------------------------------------------------------------------------------------------------------
 Reporting* Reporting::Instance()
 {
 	return (Reporting*)m_singleton.get();
 }
-
+// ---------------------------------------------------------------------------------------------------------------------
 Reporting::Reporting()
 {
 	m_readyToReport = false;
 	//m_queueFullError = false;
 	//numTapesToSkip = 0;
 }
-
+// ---------------------------------------------------------------------------------------------------------------------
 CStdString __CDECL__ Reporting::GetName()
 {
 	return "Reporting";
 }
-
+// ---------------------------------------------------------------------------------------------------------------------
 TapeProcessorRef  Reporting::Instanciate()
 {
 	return m_singleton;
 }
-
+// ---------------------------------------------------------------------------------------------------------------------
 void __CDECL__ Reporting::SkipTapes(int number, CStdString trackingServer)
 {
 	std::map<CStdString, ReportingThreadInfoRef>::iterator pair;
@@ -166,7 +168,7 @@ void __CDECL__ Reporting::SkipTapes(int number, CStdString trackingServer)
 		}
 	}
 }
-
+// ---------------------------------------------------------------------------------------------------------------------
 bool Reporting::AddMessage(MessageRef messageRef)
 {
 	CStdString logMsg;
@@ -199,6 +201,7 @@ bool Reporting::AddMessage(MessageRef messageRef)
 	EventStreamingSingleton::instance()->AddMessage(reportable->Clone());
 	return ret;
 }
+// ---------------------------------------------------------------------------------------------------------------------
 
 void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
 {
@@ -207,7 +210,7 @@ void Reporting::AddAudioTape(AudioTapeRef& audioTapeRef)
 	audioTapeRef->GetMessage(msgRef);
 	AddMessage(msgRef);
 }
-
+// ---------------------------------------------------------------------------------------------------------------------
 void Reporting::ThreadHandler()
 {
 	return;
@@ -307,7 +310,7 @@ void ReportingThread::Run()
 
 	OrkHttpSingleLineClient c;
 	SimpleResponseMsg response;
-
+	// -------------------------------------- INITIAL REQUEST TO ORKTRACK -----------------------
 	do {
 		bool conn = c.Execute((SyncMessage&)(*initMsgRef.get()), 
 				              (AsyncMessage&)response, 

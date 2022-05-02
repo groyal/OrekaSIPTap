@@ -160,9 +160,9 @@
 #define HOSTNAME_REPORT_FQDN "HostnameReportFqdn"
 #define HOSTNAME_REPORT_FQDN_DEFAULT false
 #define HOLD_RESUME_REPORT_EVENTS "HoldResumeReportEvents"
-#define HOLD_RESUME_REPORT_EVENTS_DEFAULT false
+#define HOLD_RESUME_REPORT_EVENTS_DEFAULT true
 #define HOLD_RESUME_REPORT_DURATION "HoldResumeReportDuration"
-#define HOLD_RESUME_REPORT_DURATION_DEFAULT false
+#define HOLD_RESUME_REPORT_DURATION_DEFAULT true
 #ifdef SUPPORT_TLS_SERVER
 #define TLS_SERVER_CERTIFICATE_PATH_DEFAULT "/etc/orkaudio/certs/server_tls_cert.pem"
 #define TLS_SERVER_CERTIFICATE_PATH_PARAM "TlsServerCertificatePath"

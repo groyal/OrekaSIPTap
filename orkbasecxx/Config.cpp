@@ -96,8 +96,8 @@ Config::Config()
 	m_discardUnidirectionalCalls = false;
 	m_audioFileBitRate = 6000;
 	m_audioOutputEnable = true;
-	m_holdResumeReportEvents = HOLD_RESUME_REPORT_EVENTS_DEFAULT;
-	m_holdResumeReportDuration = HOLD_RESUME_REPORT_DURATION_DEFAULT;
+	m_holdResumeReportEvents = true;
+	m_holdResumeReportDuration = true;
 #ifdef SUPPORT_TLS_SERVER
 	m_tlsServerPort = TLS_SERVER_PORT_DEFAULT;
 	m_tlsServerCertPath = TLS_SERVER_CERTIFICATE_PATH_DEFAULT;
