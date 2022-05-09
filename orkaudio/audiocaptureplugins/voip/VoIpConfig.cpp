@@ -67,7 +67,7 @@ void VoIpConfig::Reset() {
 	m_sipTreat200OkAsInvite = true;
 	m_sipAllowMultipleMediaAddresses = false;	// deprecated
 	m_sip302MovedTemporarilySupport = false;
-	m_sipInviteCanPutOffHold = false;
+	m_sipInviteCanPutOffHold = true;
 	m_sipCallPickUpSupport = false;
 	m_sipOnDemandFieldName = "X-record";
 	m_sipDialedNumberFieldName = "";
@@ -115,7 +115,7 @@ void VoIpConfig::Reset() {
 	m_lanIpRanges.Compute();
 
 	m_dahdiIntercept = false;
-	m_holdReportStats = false;
+	m_holdReportStats = true;
 	m_Iax2RewriteTimestamps = false;
 	m_trackRawRtpSessionInNonLookBackMode = false;
 
