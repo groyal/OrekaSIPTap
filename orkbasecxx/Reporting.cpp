@@ -174,6 +174,9 @@ bool Reporting::AddMessage(MessageRef messageRef)
 	CStdString logMsg;
 	const CStdString msgAsSingleLineString = messageRef->SerializeSingleLine();
 
+	logMsg.Format("----------------------  ADD MESSAGED CALLED ---------------");
+	LOG4CXX_INFO(LOG.reporting, logMsg);
+
 	IReportable* reportable = dynamic_cast<IReportable*>(messageRef.get());
 	if (!reportable) {
 		FLOG_WARN(LOG.reporting,"Discarding message that is not reportable: %s", msgAsSingleLineString);

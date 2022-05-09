@@ -5,6 +5,8 @@ This is the low level SIP Tapping component that listens to SIP call events and 
 
 It interfaces to another component through an embedded HTTP client (usually http://localhost:8080). The other project is SIPRecordingAgent.
 
+The SIP 
+
 ### Components
 - **Orkaudio**:  
     The audio capture and storage daemon with pluggable capture modules currently comes with modules for VoIP and sound device recording.

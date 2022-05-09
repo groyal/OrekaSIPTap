@@ -1,6 +1,6 @@
 /*
  * Oreka -- A media capture and retrieval platform
- * 
+ *
  * Copyright (C) 2005, orecx LLC
  *
  * http://www.orecx.com
@@ -11,18 +11,16 @@
  *
  */
 
-
 #include "Utils.h"
 #include "ConfigManager.h"
 #include "OrkClient.h"
 #include "LogManager.h"
 #include "SslUtils.h"
 
- 
 #ifdef WIN32
-	#define IOV_TYPE char*
+#define IOV_TYPE char *
 #else
-	#define IOV_TYPE void*	
+#define IOV_TYPE void *
 #endif
 
 time_t OrkClient::s_lastErrorReportedTime = 0;
@@ -32,9 +30,9 @@ OrkClient::OrkClient()
 	m_log = OrkLogManager::Instance()->clientLog;
 }
 
-void OrkClient::LogError(CStdString& logMsg)
+void OrkClient::LogError(CStdString &logMsg)
 {
-	if((time(NULL) - s_lastErrorReportedTime) > 60)
+	if ((time(NULL) - s_lastErrorReportedTime) > 60)
 	{
 		s_lastErrorReportedTime = time(NULL);
 		LOG4CXX_ERROR(m_log, logMsg);
@@ -42,17 +40,18 @@ void OrkClient::LogError(CStdString& logMsg)
 }
 
 #ifdef SUPPORT_TLS_CLIENT
-bool OrkHttpClient::SSL_OpenSession(const std::string& hostname, const int tcpPort, int timeout)
+bool OrkHttpClient::SSL_OpenSession(const std::string &hostname, const int tcpPort, int timeout)
 {
 	CStdString logMsg;
 	bool rc = true;
 
-	if (!ssl_session) ssl_session.reset(new SSL_Session);
+	if (!ssl_session)
+		ssl_session.reset(new SSL_Session);
 
 	if (!ssl_session->established())
 	{
-		//SSL_Connect will establish a TCP connection, and perform
-		//SSL handshake with certificate verification.
+		// SSL_Connect will establish a TCP connection, and perform
+		// SSL handshake with certificate verification.
 		rc = ssl_session->SSL_Connect(hostname, tcpPort, timeout);
 	}
 
@@ -69,7 +68,7 @@ bool OrkHttpClient::SSL_SessionEstablished()
 	return (ssl_session && ssl_session->established());
 }
 
-bool OrkHttpClient::ExecuteSSLRequest(const std::string& request, std::string& responseString, const std::string& hostname, const int tcpPort, int timeout)
+bool OrkHttpClient::ExecuteSSLRequest(const std::string &request, std::string &responseString, const std::string &hostname, const int tcpPort, int timeout)
 {
 	CStdString logMsg;
 	CStdString requestDetails;
@@ -79,7 +78,8 @@ bool OrkHttpClient::ExecuteSSLRequest(const std::string& request, std::string& r
 	if (!SSL_OpenSession(hostname, tcpPort, timeout))
 		return false;
 
-	try {
+	try
+	{
 		boost::system::error_code ec;
 
 		boost::asio::streambuf request_buf;
@@ -95,26 +95,26 @@ bool OrkHttpClient::ExecuteSSLRequest(const std::string& request, std::string& r
 		{
 			boost::asio::streambuf::const_buffers_type bufs = request_buf.data();
 			std::string str(boost::asio::buffers_begin(bufs),
-			                boost::asio::buffers_begin(bufs) + request_buf.size());
+							boost::asio::buffers_begin(bufs) + request_buf.size());
 			logMsg.Format("send of %d bytes to %s:%d [%s]",
-					request_buf.size(), hostname, tcpPort, str);
-			LOG4CXX_TRACE(m_log,logMsg);
+						  request_buf.size(), hostname, tcpPort, str);
+			LOG4CXX_TRACE(m_log, logMsg);
 		}
 		ssl_session->write(request_buf);
 
 		// Read the response
 		boost::asio::streambuf response;
 		if (!ssl_session->read_until(response, "\r\n", timeout))
-			return false; //error logged in read_until
+			return false; // error logged in read_until
 
 		if (m_log->isTraceEnabled())
 		{
 			boost::asio::streambuf::const_buffers_type bufs = response.data();
 			std::string str(boost::asio::buffers_begin(bufs),
-			                boost::asio::buffers_begin(bufs) + response.size());
+							boost::asio::buffers_begin(bufs) + response.size());
 			logMsg.Format("recv of %d bytes from %s:%d [%s]",
-					response.size(), hostname, tcpPort, str);
-			LOG4CXX_TRACE(m_log,logMsg);
+						  response.size(), hostname, tcpPort, str);
+			LOG4CXX_TRACE(m_log, logMsg);
 		}
 
 		// Verify the response
@@ -126,14 +126,16 @@ bool OrkHttpClient::ExecuteSSLRequest(const std::string& request, std::string& r
 		unsigned int status_code;
 		response_stream >> status_code;
 
-		if  (!response_stream || (http_version.substr(0, 5) != "HTTP/")) {
+		if (!response_stream || (http_version.substr(0, 5) != "HTTP/"))
+		{
 			logMsg.Format("Unexpected version [%s] request:%s", http_version, requestDetails);
 			LogError(logMsg);
 			SSL_CloseSession();
 			return false;
 		}
 
-		if (status_code != 200) {
+		if (status_code != 200)
+		{
 			logMsg.Format("Bad status:%d ** request:%s", status_code, requestDetails);
 			LogError(logMsg);
 			SSL_CloseSession();
@@ -142,7 +144,7 @@ bool OrkHttpClient::ExecuteSSLRequest(const std::string& request, std::string& r
 
 		boost::system::error_code error;
 		std::string line;
-		bool readContent=false;
+		bool readContent = false;
 
 		//
 		// read response from remote. We read lines from the response_stream
@@ -154,35 +156,40 @@ bool OrkHttpClient::ExecuteSSLRequest(const std::string& request, std::string& r
 		{
 			bool response_received = false;
 			std::istream response_stream(&response);
-			while (std::getline(response_stream, line)) {
-				if (readContent) {
+			while (std::getline(response_stream, line))
+			{
+				if (readContent)
+				{
 					responseString += line;
 					response_received = true;
 					break;
 				}
-				else if (line == "\r") { // Empty line marks the end of header
+				else if (line == "\r")
+				{ // Empty line marks the end of header
 					readContent = true;
 				}
 			}
-			if (response_received) break;
-			//response stream is empty -- refill it from underlying session
+			if (response_received)
+				break;
+			// response stream is empty -- refill it from underlying session
 			if (!ssl_session->read(response, error, timeout))
-				return false; //error logged in lower routine
+				return false; // error logged in lower routine
 			if (m_log->isTraceEnabled())
 			{
 				boost::asio::streambuf::const_buffers_type bufs = response.data();
 				std::string str(boost::asio::buffers_begin(bufs),
-				                boost::asio::buffers_begin(bufs) + response.size());
+								boost::asio::buffers_begin(bufs) + response.size());
 				logMsg.Format("recv of %d bytes from %s:%d [%s]",
-						response.size(), hostname, tcpPort, str);
-				LOG4CXX_TRACE(m_log,logMsg);
+							  response.size(), hostname, tcpPort, str);
+				LOG4CXX_TRACE(m_log, logMsg);
 			}
- 			response_stream.seekg(0);
+			response_stream.seekg(0);
 		}
-		logMsg.Format("%s:%d response:%s",hostname, tcpPort, responseString);
+		logMsg.Format("%s:%d response:%s", hostname, tcpPort, responseString);
 		LOG4CXX_DEBUG(m_log, logMsg);
 
-		if (error) {
+		if (error)
+		{
 			logMsg.Format("Read Error %d: %s", error.value(), error.message());
 			LogError(logMsg);
 			SSL_CloseSession();
@@ -190,7 +197,8 @@ bool OrkHttpClient::ExecuteSSLRequest(const std::string& request, std::string& r
 		}
 		return true;
 	}
-	catch (std::exception& e) {
+	catch (std::exception &e)
+	{
 		// log the exception -- most should be caught by lower levels
 		// but write could potentially have thrown something.
 		logMsg.Format("%s:%d exception %s", hostname, tcpPort, e.what());
@@ -200,73 +208,83 @@ bool OrkHttpClient::ExecuteSSLRequest(const std::string& request, std::string& r
 	}
 }
 
-bool OrkHttpClient::ExecuteSslUrl(const std::string& request, std::string& responseString, const std::string& hostname, const int tcpPort, int timeout)
+bool OrkHttpClient::ExecuteSslUrl(const std::string &request, std::string &responseString, const std::string &hostname, const int tcpPort, int timeout)
 {
 	bool result;
-	bool retry=false;
+	bool retry = false;
 
 	// If we're using an already established SSL session, remote may have
 	// disconnected without our knowledge, so be prepared to retry.
-	if (SSL_SessionEstablished()) retry = true;
+	if (SSL_SessionEstablished())
+		retry = true;
 	result = ExecuteSSLRequest(request, responseString, hostname, tcpPort, timeout);
-	if (!result && retry) result = ExecuteSSLRequest(request, responseString, hostname, tcpPort, timeout); //2nd bite at the apple
+	if (!result && retry)
+		result = ExecuteSSLRequest(request, responseString, hostname, tcpPort, timeout); // 2nd bite at the apple
 
 	return result;
 }
 #endif
 
-bool OrkHttpClient::ExecuteUrl(const CStdString& request, CStdString& response, const CStdString& hostname, const int tcpPort, int timeout)
+bool OrkHttpClient::ExecuteUrl(const CStdString &request, CStdString &response, const CStdString &hostname, const int tcpPort, int timeout)
 {
 	OrkAprSubPool locPool;
 
 	CStdString logMsg;
+	logMsg.Format("---------------------- Execute URL Called ---------------------");
+	LogError(logMsg);
 	response = "";
 	CStdString requestDetails;
 	requestDetails.Format("timeout:%d http://%s:%d/%s", timeout, hostname, tcpPort, request);
 	time_t beginRequestTimestamp = time(NULL);
 
 	apr_status_t rt;
-	apr_sockaddr_t* sa;
-	apr_socket_t* socket;
+	apr_sockaddr_t *sa;
+	apr_socket_t *socket;
 
 	char szTcpPort[10];
 	sprintf(szTcpPort, "%d", tcpPort);
 	iovec iov[8];
-	iov[0].iov_base = (void*)"GET ";
+	iov[0].iov_base = (void *)"GET ";
 	iov[0].iov_len = 4; // Length of "GET ".
 	iov[1].iov_base = (PSTR)(PCSTR)request;
 	iov[1].iov_len = request.size();
-	iov[2].iov_base = (void*)" HTTP/1.0\r\n";
+	iov[2].iov_base = (void *)" HTTP/1.0\r\n";
 	iov[2].iov_len = 11;
-	iov[3].iov_base = (void*)"Host: ";
+	iov[3].iov_base = (void *)"Host: ";
 	iov[3].iov_len = 6;
 	iov[4].iov_base = (PSTR)(PCSTR)hostname;
 	iov[4].iov_len = hostname.size();
-	iov[5].iov_base = (void*)":";
+	iov[5].iov_base = (void *)":";
 	iov[5].iov_len = 1;
 	iov[6].iov_base = szTcpPort;
 	iov[6].iov_len = strlen(szTcpPort);
-	iov[7].iov_base = (void*)"\r\n\r\n";
+	iov[7].iov_base = (void *)"\r\n\r\n";
 	iov[7].iov_len = 4;
 
 	rt = apr_sockaddr_info_get(&sa, (PCSTR)hostname, APR_INET, tcpPort, 0, AprLp);
-	if(rt != APR_SUCCESS){
+	if (rt != APR_SUCCESS)
+	{
 		logMsg.Format("error looking up %s: %s", hostname, AprGetErrorMsg(rt));
-			LogError(logMsg);
-			return false;
+		LogError(logMsg);
+		return false;
 	}
-	rt = apr_socket_create(&socket, sa->family, SOCK_STREAM,APR_PROTO_TCP, AprLp);
-	if(rt != APR_SUCCESS){
+	rt = apr_socket_create(&socket, sa->family, SOCK_STREAM, APR_PROTO_TCP, AprLp);
+	if (rt != APR_SUCCESS)
+	{
 		logMsg.Format("apr_socket_create errno:%s", AprGetErrorMsg(rt));
-			LogError(logMsg);
-			return false;
+		LogError(logMsg);
+		return false;
 	}
-	if(timeout < 1){timeout = 1;}
+	if (timeout < 1)
+	{
+		timeout = 1;
+	}
 	apr_socket_opt_set(socket, APR_SO_NONBLOCK, 0);
-	apr_interval_time_t to = timeout*1000*1000;
+	apr_interval_time_t to = timeout * 1000 * 1000;
 	apr_socket_timeout_set(socket, to);
 	rt = apr_socket_connect(socket, sa);
-	if(rt != APR_SUCCESS){
+	if (rt != APR_SUCCESS)
+	{
 		logMsg.Format("apr_socket_connect connect failed errno:%s", AprGetErrorMsg(rt));
 		LogError(logMsg);
 		apr_socket_close(socket);
@@ -274,8 +292,8 @@ bool OrkHttpClient::ExecuteUrl(const CStdString& request, CStdString& response, 
 	}
 
 	apr_size_t len;
-	rt = apr_socket_sendv(socket,iov, 8, &len);
-	if(rt != APR_SUCCESS)
+	rt = apr_socket_sendv(socket, iov, 8, &len);
+	if (rt != APR_SUCCESS)
 	{
 		logMsg.Format("apr_socket_sendv  errno=%s %s", AprGetErrorMsg(rt), requestDetails);
 		LogError(logMsg);
@@ -284,26 +302,26 @@ bool OrkHttpClient::ExecuteUrl(const CStdString& request, CStdString& response, 
 	}
 
 #define BUFSIZE 4096
-	char buf [BUFSIZE];
+	char buf[BUFSIZE];
 	CStdString header;
 	bool gotHeader = false;
 	apr_size_t numReceived = BUFSIZE;
 	rt = apr_socket_recv(socket, buf, &numReceived);
-	
-	while((rt == APR_SUCCESS) && (numReceived > 0) && ((time(NULL) - beginRequestTimestamp) <= timeout))
+
+	while ((rt == APR_SUCCESS) && (numReceived > 0) && ((time(NULL) - beginRequestTimestamp) <= timeout))
 	{
-		for(int i=0; i<numReceived; i++)
+		for (int i = 0; i < numReceived; i++)
 		{
-			if(!gotHeader)
+			if (!gotHeader)
 			{
 				// extract header (delimited by CR-LF-CR-LF)
 				header += buf[i];
 				size_t headerSize = header.size();
 				if (headerSize > 4 &&
-					header.GetAt(headerSize-1) == '\n' && 
-					header.GetAt(headerSize-2) == '\r' &&
-					header.GetAt(headerSize-3) == '\n' &&
-					header.GetAt(headerSize-4) == '\r'		)
+					header.GetAt(headerSize - 1) == '\n' &&
+					header.GetAt(headerSize - 2) == '\r' &&
+					header.GetAt(headerSize - 3) == '\n' &&
+					header.GetAt(headerSize - 4) == '\r')
 				{
 					gotHeader = true;
 				}
@@ -318,29 +336,29 @@ bool OrkHttpClient::ExecuteUrl(const CStdString& request, CStdString& response, 
 	}
 	apr_socket_close(socket);
 
-	logMsg.Format("%s:%d response:%s",hostname, tcpPort, response);
+	logMsg.Format("%s:%d response:%s", hostname, tcpPort, response);
 	LOG4CXX_DEBUG(m_log, logMsg);
-	if(numReceived < 0)
+	if (numReceived < 0)
 	{
 		logMsg.Format("numReceived:%d %s", numReceived, requestDetails);
 		LogError(logMsg);
 		return false;
 	}
-	if(header.size() > 12 && header.GetAt(9) == '4' && header.GetAt(10) == '0' && header.GetAt(11) == '0')
+	if (header.size() > 12 && header.GetAt(9) == '4' && header.GetAt(10) == '0' && header.GetAt(11) == '0')
 	{
 		logMsg.Format("HTTP header:%s ** request:%s\nIgnore this message", header, requestDetails);
 		LOG4CXX_ERROR(m_log, logMsg);
 		return true;
 	}
-	if(header.size() < 12 || response.size() <= 0)
+	if (header.size() < 12 || response.size() <= 0)
 	{
 		logMsg.Format("HTTP header:%s ** request:%s ** response:%s ** header size:%d  response size:%d", header, requestDetails, response, header.size(), response.size());
 		LogError(logMsg);
 		return false;
 	}
-	if(	header.GetAt(9) != '2' ||
+	if (header.GetAt(9) != '2' ||
 		header.GetAt(10) != '0' ||
-		header.GetAt(11) != '0'	)
+		header.GetAt(11) != '0')
 	{
 		logMsg.Format("HTTP header:%s ** request:%s", header, requestDetails);
 		LogError(logMsg);
@@ -349,7 +367,7 @@ bool OrkHttpClient::ExecuteUrl(const CStdString& request, CStdString& response, 
 	return true;
 }
 
-bool OrkHttpSingleLineClient::Execute(SyncMessage& request, AsyncMessage& response, const CStdString& hostname,const int tcpPort, const CStdString& serviceName, const int timeout, const bool useHttps)
+bool OrkHttpSingleLineClient::Execute(SyncMessage &request, AsyncMessage &response, const CStdString &hostname, const int tcpPort, const CStdString &serviceName, const int timeout, const bool useHttps)
 {
 	CStdString requestString = "/" + serviceName + "/command?";
 	requestString += request.SerializeUrl();
@@ -371,9 +389,7 @@ bool OrkHttpSingleLineClient::Execute(SyncMessage& request, AsyncMessage& respon
 			response.DeSerializeSingleLine(responseString);
 			return true;
 		}
-
 	}
 #endif
-	return false; 
+	return false;
 }
-

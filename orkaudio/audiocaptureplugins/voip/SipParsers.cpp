@@ -49,6 +49,12 @@ inline bool IsAFieldSeparator(char c)
 // Parameter: const OrkStringView & searchedString   eg "ABCDEFG"
 // Parameter: const OrkStringView & stringToFind     eg   "CDE"  will return result will be 2 
 //************************************
+
+/*
+		This reports events to VoipSession 
+		
+
+*/
 size_t  OrkStringViewFind(const OrkStringView& searchedString, const OrkStringView& stringToFind)
 {
 	// replacement for string_view::find because 
@@ -1738,6 +1744,8 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 		memcpy(info->m_senderMac, ethernetHeader->sourceMac, sizeof(info->m_senderMac));
 		memcpy(info->m_receiverMac, ethernetHeader->destinationMac, sizeof(info->m_receiverMac));
 
+		logMsg = "===== SIP METHOD " + sipMethod + "========";
+		LOG4CXX_INFO(s_sipPacketLog, logMsg);
 		if(sipMethod.Equals(SIP_METHOD_INVITE) || info->m_fromRtpPort.size())
 		{
 			// Only log SIP non-INVITE messages that contain SDP (i.e. with a valid RTP port)
@@ -1747,15 +1755,25 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			logMsg = sipMethod + ":" + logMsg;
 			LOG4CXX_INFO(s_sipPacketLog, logMsg);
 		}
+		/*
+			EVENT CALL HERE
+			This is the call to report on SIP INVITES in Call.
+			Sip INVITE without sdp will be reported, but other methods without sdp will not be
 
-		//Sip INVITE without sdp will be reported, but other methods without sdp will not be
+		*/
+		// this is handle for INVITE MESSAGE 
 		if(drop == false && sipMethod == SIP_METHOD_INVITE && info->m_from.size() && info->m_to.size() && info->m_callId.size())
 		{
+			logMsg = "===== VOIP SESSION A01  ========";
+			LOG4CXX_INFO(s_sipPacketLog, logMsg);
 			VoIpSessionsSingleton::instance()->ReportSipInvite(info);
 		}
+		//  TEMP FIX HERE TO STOP 200 OKAY treated as INVITE
 		else if(drop == false && info->m_fromRtpPort.size() && info->m_from.size() && info->m_to.size() && info->m_callId.size())
 		{
-			VoIpSessionsSingleton::instance()->ReportSipInvite(info);
+			logMsg = "===== VOIP SESSION A02  ========";
+			LOG4CXX_INFO(s_sipPacketLog, logMsg);
+			//VoIpSessionsSingleton::instance()->ReportSipInvite(info);
 		}
 	}
 	return result;

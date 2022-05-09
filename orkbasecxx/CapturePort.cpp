@@ -290,6 +290,9 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 -------------------------------------------------------------------------------------- */
 void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 {
+	CStdString logMsg;
+	logMsg.Format("--------------- ADD CAPTURE EVENT CALLED ----------------------");
+	LOG4CXX_INFO(s_log, logMsg);
 	FilterCaptureEvent(eventRef);
 
 	m_lastUpdated = time(NULL);
@@ -299,6 +302,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 	// First of all, handle tape start
 	if (eventRef->m_type == CaptureEvent::EtStart)
 	{
+		logMsg.Format("--------------- CAPTURE EVENT EtStart -----" );
+		LOG4CXX_INFO(s_log, logMsg);
 		m_capturing = true;
 		if (audioTapeRef.get())
 		{
@@ -322,6 +327,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 	}
 	else
 	{
+
 		// Ok, at this point, we know we have a valid audio tape
 		switch(eventRef->m_type)
 		{
@@ -329,6 +335,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			break;
 		case CaptureEvent::EtStop:
 		{
+			logMsg.Format("--------------- CAPTURE EVENT EtStop -----" );
+			LOG4CXX_INFO(s_log, logMsg);
 			m_capturing = false;
 			if(CONFIG.m_holdResumeReportDuration) audioTapeRef->PopulateTag("holdduration", IntToString(audioTapeRef->m_holdDuration));
 			LOG4CXX_INFO(s_log, "[" + audioTapeRef->m_trackingId + "] #" + m_id + " stop");
@@ -344,6 +352,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		}
 		case CaptureEvent::EtHold:
 		{
+			logMsg.Format("--------------- CAPTURE EVENT EtHold -----" );
+			LOG4CXX_INFO(s_log, logMsg);
 			if(audioTapeRef->m_lastHoldTs == 0){
 				audioTapeRef->m_lastHoldTs = time(NULL);
 				if(CONFIG.m_holdResumeReportEvents){
@@ -357,6 +367,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		}
 		case CaptureEvent::EtResume:
 		{
+			logMsg.Format("--------------- CAPTURE EVENT EtResume -----" );
+			LOG4CXX_INFO(s_log, logMsg);
 			if(audioTapeRef->m_lastHoldTs > 0) audioTapeRef->m_holdDuration += (time(NULL) - audioTapeRef->m_lastHoldTs);			
 			if(CONFIG.m_holdResumeReportEvents && audioTapeRef->m_lastHoldTs > 0){
 				audioTapeRef->AddCaptureEvent(eventRef, true);
@@ -369,6 +381,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		}
 		case CaptureEvent::EtEndMetadata:
 		{
+			logMsg.Format("--------------- CAPTURE EVENT EtEndMetadata -----" );
+			LOG4CXX_INFO(s_log, logMsg);
 			// Now that all metadata has been acquired, we can generate the tape start message
 
 			MessageRef msgRef;
@@ -380,6 +394,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		}
 		case CaptureEvent::EtUpdate:
 		{
+			logMsg.Format("--------------- CAPTURE EVENT EtUpdate -----" );
+			LOG4CXX_INFO(s_log, logMsg);
 			audioTapeRef->AddCaptureEvent(eventRef, true);
 			// Generate tape update message
 			MessageRef msgRef;
@@ -394,6 +410,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		case CaptureEvent::EtLocalParty:
 		case CaptureEvent::EtLocalEntryPoint:
 		default:
+			logMsg.Format("--------------- CAPTURE EVENT default -----" );
+			LOG4CXX_INFO(s_log, logMsg);
 			audioTapeRef->AddCaptureEvent(eventRef, false);
 		}
 	}

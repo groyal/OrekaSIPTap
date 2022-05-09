@@ -89,11 +89,13 @@ void OrkLogManager::Initialize()
 	configLog = Logger::getLogger("config");
 	tapelistLog = Logger::getLogger("tapelist");
 	tapeLog = Logger::getLogger("tape");
-	clientLog = Logger::getLogger("orkclient");
+	clientLog = Logger::getLogger("orkclient");	
 	directionSelectorLog = Logger::getLogger("directionSelector");
 	reporting = Logger::getLogger("reporting");
 	ipfragmentation = Logger::getLogger("ipfragmentation");
 	messaging = Logger::getLogger("messaging");
+
+	LOG4CXX_INFO(rootLog, "Logging Manager Initialized...............");
 }
 
 void OrkLogManager::Shutdown()

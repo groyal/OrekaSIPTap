@@ -481,6 +481,8 @@ void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 
 		MutexSentinel mutexSentinel(s_mutex); // serialize access for competing pcap threads
 
+		// this applies test for each UDP packet
+
 		detectedUsefulPacket = TryRtp(ethernetHeader, ipHeader, udpHeader, udpPayload);
 
 		if(!detectedUsefulPacket) {

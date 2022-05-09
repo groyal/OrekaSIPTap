@@ -997,6 +997,9 @@ void VoIpSession::ReportMetadata()
 
 void VoIpSession::GoOnHold(time_t onHoldTime)
 {
+	CStdString logMsg;
+	logMsg.Format("------------------ GOONHOLD CALLED -----------------");
+	LOG4CXX_INFO(m_log, logMsg);
 	if(m_started != true)
 	{
 		return;
@@ -1004,6 +1007,8 @@ void VoIpSession::GoOnHold(time_t onHoldTime)
 	m_onHold = true;
 	m_holdBegin = onHoldTime;
 	if(CONFIG.m_holdResumeReportDuration || CONFIG.m_holdResumeReportEvents){
+		logMsg.Format("------------------ GOONHOLD CAPTURE EVENT CREATED -----------------");
+		LOG4CXX_INFO(m_log, logMsg);
 		CaptureEventRef event(new CaptureEvent());
 		event->m_type = CaptureEvent::EtHold;
 		event->m_value = m_trackingId;
@@ -1013,24 +1018,44 @@ void VoIpSession::GoOnHold(time_t onHoldTime)
 
 void VoIpSession::GoOffHold(time_t offHoldTime)
 {
-        m_lastUpdated = offHoldTime;
+	CStdString logMsg;
+	logMsg.Format("------------------ GOOFFHOLD CALLED -RESUME -----------------");
+	LOG4CXX_INFO(m_log, logMsg);
+    m_lastUpdated = offHoldTime;
 	m_onHold = false;
 	m_holdDuration += offHoldTime - m_holdBegin;
 
 	if(DLLCONFIG.m_holdReportStats)
 	{
 		// Report holdtime to Audio Tape
+		logMsg.Format("------------------ GOOFFHOLD CAPTURE EVENT CREATED - EtKeyValue -----------------");
+		LOG4CXX_INFO(m_log, logMsg);
+
 		CaptureEventRef event(new CaptureEvent());
 		event->m_type = CaptureEvent::EtKeyValue;
 		event->m_key = "holdtime";
 		event->m_value.Format("%d", m_holdDuration);
 		g_captureEventCallBack(event,  m_capturePort);
+	} else {
+		logMsg.Format("------------------ holdreportstats = false -----------------");
+		LOG4CXX_INFO(m_log, logMsg);
 	}
 	if(CONFIG.m_holdResumeReportDuration || CONFIG.m_holdResumeReportEvents){
+		logMsg.Format("------------------ GOOFFHOLD CAPTURE EVENT CREATED - EtResume -----------------");
+		LOG4CXX_INFO(m_log, logMsg);
 		CaptureEventRef event(new CaptureEvent());
 		event->m_type = CaptureEvent::EtResume;
 		event->m_value = m_trackingId;
 		g_captureEventCallBack(event, m_capturePort);
+	} else {
+		if (!CONFIG.m_holdResumeReportDuration ) {
+			logMsg.Format("------------------ holdresumereportduration = false -----------------");
+			LOG4CXX_INFO(m_log, logMsg);
+		}
+		if (!CONFIG.m_holdResumeReportEvents ) {
+			logMsg.Format("------------------ m_holdResumeReportEvents = false -----------------");
+			LOG4CXX_INFO(m_log, logMsg);
+		}
 	}
 }
 
@@ -1588,6 +1613,10 @@ void VoIpSession::LogRtpPayloadMap()
 
 void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 {
+	CStdString logMsg;
+	logMsg.Format("------------------ VOIPSESSION-REPORT SIP INVITE A01 -----------------");
+	LOG4CXX_INFO(m_log, logMsg);
+
 	if(DLLCONFIG.m_sipMetadataUseLastInvite || m_invite.get() == NULL)
 	{
 		m_invite = invite;
@@ -1603,25 +1632,36 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	}
 	if(invite->m_from.CompareNoCase(invite->m_to) == 0 && invite->m_contact.length() > 0)
 	{
+		logMsg.Format("------------------ m_to equals m_from -----------------");
+		LOG4CXX_INFO(m_log, logMsg);
 		m_remoteParty = VoIpSessionsSingleton::instance()->GetLocalPartyMap(invite->m_contact);
 		m_direction = CaptureEvent::DirOut;
 
 		CaptureEventRef event(new CaptureEvent());
 		event->m_type = CaptureEvent::EtRemoteParty;
 		event->m_value = m_remoteParty;
+		logMsg.Format("CAPTURE EVENT A01 -----------------");
+		LOG4CXX_INFO(m_log, logMsg);
 		g_captureEventCallBack(event, m_capturePort);
 		
 
 		event.reset(new CaptureEvent());
 		event->m_type = CaptureEvent::EtDirection;
 		event->m_value = CaptureEvent::DirectionToString(m_direction);
+		logMsg.Format("CAPTURE EVENT A02 -----------------");
+		LOG4CXX_INFO(m_log, logMsg);
 		g_captureEventCallBack(event, m_capturePort);
+	} else {
+		logMsg.Format("------------------ m_to not equal m_from -----------------");
+		LOG4CXX_INFO(m_log, logMsg);
 	}
+	logMsg.Format("------------------ push invite onto stack -----------------");
+	LOG4CXX_INFO(m_log, logMsg);
 	m_invites.push_front(invite);
 	if (invite->m_telephoneEventPayloadType) {
 		m_telephoneEventPayloadType = invite->m_telephoneEventPayloadType;
 	}
-
+	LOG4CXX_INFO(m_log, logMsg);
 	//with CUCM hunt pilots in the inbound case, Remote-Party-ID of the first INVITE to the endpoint is reported as the hunt pilot extension.
 	//Subsequent INVITEs report Remote-Party-ID as the true remote party. Also, Remote-Party-ID reported by the 200 OK messages is useless because it reports the local extension handling the call.
 	//See pcap with md5sum:bfa80e917bc00df595996b1429780867
@@ -1639,7 +1679,7 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 			m_sipRemoteParty = invite->m_sipRemoteParty;
 		}
 	}
-
+	LOG4CXX_INFO(m_log, logMsg);
 	// Use the RTP codec that was extracted from SDP if available
 	UpdateRtpPayloadMap(invite->m_orekaRtpPayloadTypeMap);
 	LogRtpPayloadMap();
@@ -1651,6 +1691,8 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		for( ; i != invite->m_extractedFields.end(); ++i )
 		{		
 			// Report Key Values to Audio Tape
+			logMsg.Format("CAPTURE EVENT To AUDIO TAPE A03 -----------------");
+			LOG4CXX_INFO(m_log, logMsg);
 			CaptureEventRef event(new CaptureEvent());
 			event->m_type = CaptureEvent::EtKeyValue;
 			event->m_key = i->first;
@@ -1662,7 +1704,7 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 	{
 		std::copy(invite->m_extractedFields.begin(), invite->m_extractedFields.end(), std::inserter(m_tags, m_tags.begin()));
 	}
-
+	LOG4CXX_INFO(m_log, logMsg);
 	if(DLLCONFIG.m_sipOnDemandFieldName.size())
 	{
 		std::map<CStdString, CStdString>::iterator pair;
@@ -1957,6 +1999,10 @@ VoIpSessions::VoIpSessions()
 
 void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 {
+	CStdString logMsg;
+	logMsg.Format("------------------ VOIPSESSION-REPORT SIP INVITE A02 -----------------");
+	LOG4CXX_INFO(m_log, logMsg);
+
 	if(DLLCONFIG.m_sipIgnoredMediaAddresses.Matches(invite->m_fromRtpIp))
 	{
 		LOG4CXX_INFO(m_log, "INVITE disregarded by SipIgnoredMediaAddresses parameter");
@@ -2011,6 +2057,8 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 		{
 			if(invite->m_attrSendonly)
 			{
+				logMsg.Format("------------------ VOIPSESSION-SESSION ON HOLD B01  -----------------");
+				LOG4CXX_INFO(m_log, logMsg);
 				session->GoOnHold(invite->m_recvTime);
 				LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going on hold");
 				return;
@@ -2019,6 +2067,8 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 			{
 				if(session->m_onHold && DLLCONFIG.m_sipInviteCanPutOffHold)
 				{
+					logMsg.Format("------------------ VOIPSESSION-SESSION OFF HOLD RESUME B01  -----------------");
+					LOG4CXX_INFO(m_log, logMsg);
 					session->GoOffHold(invite->m_recvTime);
 					session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
 					LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
@@ -2040,7 +2090,8 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	pair = m_byCallId.find(invite->m_callId);
 	if (pair != m_byCallId.end())
 	{
-		// The session already exists
+		logMsg.Format("-----------------session already exists-----------------");
+		LOG4CXX_INFO(m_log, logMsg);
 		VoIpSessionRef session = pair->second;
 
 		/*
@@ -2049,23 +2100,46 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 		 */
 		if(invite->m_attrSendonly)
 		{
+			logMsg.Format("------------------ VOIPSESSION-SESSION ON HOLD B02  -----------------");
+			LOG4CXX_INFO(m_log, logMsg);
 			session->GoOnHold(invite->m_recvTime);
 			LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going on hold");
 			return;
 		}
 		else
 		{
+			logMsg.Format("----------------- VOIPSESSION - no sendonly -----------------");
+			LOG4CXX_INFO(m_log, logMsg);
 			/* If we're already on hold and sendonly is not present
 			 * then we go off hold */
 			if(session->m_onHold && DLLCONFIG.m_sipInviteCanPutOffHold)
 			{
+				logMsg.Format("------------------ VOIPSESSION-SESSION OFF HOLD RESUME B02  -----------------");
+				LOG4CXX_INFO(m_log, logMsg);
 				session->GoOffHold(invite->m_recvTime);
 				session->m_lastUpdated = time(NULL);	// so that timeout countdown is reset
 				LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] SIP session going off hold");
 				SetMediaAddress(session, invite->m_fromRtpIp, rtpPort);
 				return;
+			} else {
+				logMsg.Format("------------------ VOIPSESSION- NOT RESUME  -----------------");
+				LOG4CXX_INFO(m_log, logMsg);
+				if ( session->m_onHold) { 
+					logMsg.Format("------------------ VOIPSESSION - SESSION IS ONHOLD -----------------");
+					LOG4CXX_INFO(m_log, logMsg);
+				} else {
+					logMsg.Format("------------------ VOIPSESSION - SESSION IS NOT ONHOLD -----------------");
+					LOG4CXX_INFO(m_log, logMsg);
+				}
+				if (DLLCONFIG.m_sipInviteCanPutOffHold) {
+					logMsg.Format("------------------ VOIPSESSION - sipinvitecanputonhold is true -----------------");
+					LOG4CXX_INFO(m_log, logMsg);
+				} else {
+					logMsg.Format("------------------ VOIPSESSION - sipinviteccanputonhold is false -----------------");
+					LOG4CXX_INFO(m_log, logMsg);
+				}
 			}
-		}
+		} 
 
 		if(session->m_ipAndPort != ipAndPort && DLLCONFIG.m_sipDynamicMediaAddress)
 		{
