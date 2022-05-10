@@ -215,11 +215,12 @@ public:
 		EtReady = 14,
 		EtUpdate = 15,
 		EtCallId = 16,
-                EtLocalSide = 17,
-                EtAudioKeepDirection = 18,
+        EtLocalSide = 17,
+        EtAudioKeepDirection = 18,
 		EtHold = 19,
 		EtResume = 20,
-		EtInvalid = 21
+		EtInvalid = 21,
+		EtRefer = 22
 	} EventTypeEnum;
 	static CStdString EventTypeToString(int eventTypeEnum);
 	static int EventTypeToEnum(CStdString&);

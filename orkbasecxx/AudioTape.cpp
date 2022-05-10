@@ -392,6 +392,8 @@ void AudioTape::SetOrkUid(CStdString& orkuid)
 void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 {
 	CStdString logMsg;
+	logMsg.Format("----------------- AUDIO TAPE ADDCAPTUREVENT ------------------------");
+	LOG4CXX_DEBUG(LOG.tapeLog, logMsg);
 	AudioDirectionMarksRef audioDirectionMarks(new AudioDirectionMarks);
 	// Extract useful info from well known events
 	switch(eventRef->m_type)
@@ -534,6 +536,11 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		break;
 	case CaptureEvent::EtCallId:
 		m_nativeCallId = eventRef->m_value;
+		break;
+
+	case CaptureEvent::EtRefer:
+		logMsg.Format("----------------- AUDIO TAPE ETREFER ------------------------");
+		LOG4CXX_DEBUG(LOG.tapeLog, logMsg);
 		break;
 	case CaptureEvent::EtKeyValue:
 		if(eventRef->m_key.CompareNoCase("ondemand") == 0)

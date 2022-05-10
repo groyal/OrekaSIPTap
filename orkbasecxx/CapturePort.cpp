@@ -409,6 +409,20 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		case CaptureEvent::EtRemoteParty:
 		case CaptureEvent::EtLocalParty:
 		case CaptureEvent::EtLocalEntryPoint:
+/*
+		case CaptureEvent::EtRefer:
+		{
+			logMsg.Format("--------------- CAPTURE EVENT EtRefer -----" );
+			audioTapeRef->AddCaptureEvent(eventRef, true);
+			// Generate tape update message
+			MessageRef msgRef;
+			audioTapeRef->GetMessage(msgRef);
+			logMsg.Format("------------------  CAPTURE EVENT EtRefer - Now Adding Reporting Message ------");
+			LOG4CXX_INFO(s_log, logMsg);
+			Reporting::Instance()->AddMessage(msgRef);
+			break;
+		}
+*/
 		default:
 			logMsg.Format("--------------- CAPTURE EVENT default -----" );
 			LOG4CXX_INFO(s_log, logMsg);

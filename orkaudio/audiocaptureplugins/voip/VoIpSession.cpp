@@ -1752,9 +1752,13 @@ void VoIpSession::ReportSipInfo(SipInfoRef& info)
 
 void VoIpSession::ReportSipRefer(SipReferRef& info)
 {
+	CStdString logMsg;
+	logMsg.Format("------------------ VOIPSESSION - REPORTSIP REFER -----------------");
+	LOG4CXX_INFO(m_log, logMsg);
+
 	info->m_origOrkUid = m_orkUid;
 	CaptureEventRef event (new CaptureEvent());
-	event->m_type = CaptureEvent::EtKeyValue;
+	event->m_type = CaptureEvent::EtRefer;
 	event->m_key = CONFERENCE_TRANSFER_TRACKING_TAG_KEY;
 	event->m_value = info->m_origOrkUid;
 	g_captureEventCallBack(event, m_capturePort);
