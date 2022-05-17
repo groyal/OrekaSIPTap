@@ -1769,9 +1769,11 @@ void VoIpSessions::ReportSipRegister(SipRegisterInfoRef& info)
 	logMsg.Format("------------------ VOIPSESSION - NOW RUN HTTP CLIENT -----------------");
 	LOG4CXX_INFO(m_log, logMsg);
 
-	auto const host ="localhost";
-    auto const port = "9000";
-    auto const target = "/orktrack/command";
+	CStdString _h = CONFIG.m_trackerHostname.front();
+	CStdString _t = "/" + CONFIG.m_trackerServicename + "/command";
+	auto const host = _h;
+    auto const port = std::to_string(CONFIG.m_trackerTcpPort).c_str();
+    auto const target = _t;
 	CStdString pload;
 	info->ToString(pload);
     auto const _body = pload;
@@ -2479,9 +2481,12 @@ void VoIpSessions::ReportSipRefer(SipReferRef& info)
 	logMsg.Format("------------------ VOIPSESSION - NOW RUN HTTP CLIENT -----------------");
 	LOG4CXX_INFO(m_log, logMsg);
 
-	auto const host ="localhost";
-    auto const port = "9000";
-    auto const target = "/orktrack/command";
+	CStdString _h = CONFIG.m_trackerHostname.front();
+	CStdString _t = "/" + CONFIG.m_trackerServicename + "/command";
+	auto const host = _h;
+    auto const port = std::to_string(CONFIG.m_trackerTcpPort).c_str();
+    auto const target = _t;
+
 	CStdString pload;
 	info->ToString(pload);
     auto const _body = pload;
