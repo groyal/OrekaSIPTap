@@ -539,7 +539,9 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 		break;
 
 	case CaptureEvent::EtRefer:
+		// XXXX		
 		logMsg.Format("----------------- AUDIO TAPE ETREFER ------------------------");
+		//m_orkUid = eventRef->m_value;
 		LOG4CXX_DEBUG(LOG.tapeLog, logMsg);
 		break;
 	case CaptureEvent::EtKeyValue:

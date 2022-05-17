@@ -196,6 +196,10 @@ public:
 #define ET_INVALID "invalid"
 #define ET_LOCALSIDE "localside"
 #define ET_AUDIOKEEPDIRECTION "audiokeepdirection"
+#define ET_SUBSCRIBE "subscribe"
+#define ET_REFER "refer"
+#define ET_REGISTER "register"
+
 	typedef enum
 	{
 		EtUnknown = 0,
@@ -220,7 +224,9 @@ public:
 		EtHold = 19,
 		EtResume = 20,
 		EtInvalid = 21,
-		EtRefer = 22
+		EtRefer = 22,
+		EtRegister = 23,
+		EtSubscribe = 24
 	} EventTypeEnum;
 	static CStdString EventTypeToString(int eventTypeEnum);
 	static int EventTypeToEnum(CStdString&);

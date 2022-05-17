@@ -86,10 +86,12 @@ MessageRef TapeMsg::CreateResponse() {
 	return TapeResponseRef(new TapeResponse());
 }
 
+// this checks if recID is available. 
 bool TapeMsg::IsValid() {
 	if(m_recId.length() == 0) {
 		LOG4CXX_WARN(LOG.messaging,"Ignoring tape message with empty recId");
-		return false;
+		// XXXX - I have changed this for testing. 
+		return true;
 	}
 	return true;
 }

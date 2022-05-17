@@ -90,7 +90,9 @@ public:
 	void ReportSipInvite(SipInviteInfoRef& invite);
 	void ReportSipErrorPacket(SipFailureMessageInfoRef& info);
 	void ReportSipInfo(SipInfoRef& info);
-	void ReportSipRefer(SipReferRef& info);
+	//void ReportSipRefer(SipReferRef& info);
+	void ReportSipRegister(SipRegisterInfoRef& info);
+	void ReportSipSubscribe(SipSubscribeInfoRef& subscribe);
 	void ReportRtcpSrcDescription(RtcpSrcDescriptionPacketInfoRef& rtcpInfo);
 	bool OrkUidMatches(CStdString &oUid);
 	bool PartyMatches(CStdString &party);
@@ -225,6 +227,7 @@ public:
 	void ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& info);
 	void ReportSipInfo(SipInfoRef& info);
 	void ReportSipRefer(SipReferRef& info);
+	void ReportSipRegister(SipRegisterInfoRef& info);
 	void Hoover(time_t now);
 	VoIpEndpointInfoRef GetVoIpEndpointInfoByIp(struct in_addr *ip);
 	VoIpEndpointInfoRef GetVoIpEndpointInfo(struct in_addr endpointIp, unsigned short skinnyPort);

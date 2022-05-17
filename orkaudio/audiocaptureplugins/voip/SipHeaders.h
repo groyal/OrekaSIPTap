@@ -171,14 +171,49 @@ public:
 };
 typedef oreka::shared_ptr<Sip200OkInfo> Sip200OkInfoRef;
 
+//=====================================================================================
 class SipSubscribeInfo
 {
 public:
 	SipSubscribeInfo();
+	void ToString(CStdString& string);
+	struct in_addr m_senderIp;
+	struct in_addr m_receiverIp;
+	CStdString m_sipMethod;
 	CStdString m_callId;
 	CStdString m_event;
 };
 typedef oreka::shared_ptr<SipSubscribeInfo> SipSubscribeInfoRef;
+//=====================================================================================
+
+class SipRegisterInfo
+{
+public:
+	SipRegisterInfo();
+	void ToString(CStdString& string);
+	CStdString m_sipMethod;
+	struct in_addr m_senderIp;
+	struct in_addr m_receiverIp;
+	char m_senderMac[6];
+	char m_receiverMac[6];
+
+	CStdString m_request_uri;
+
+	CStdString m_from;
+	CStdString m_to;
+	CStdString m_fromDomain;
+	CStdString m_toDomain;
+
+	CStdString m_fromName;
+	CStdString m_toName;
+	CStdString m_userAgent;
+
+	CStdString m_captureport;
+	
+
+};
+typedef oreka::shared_ptr<SipRegisterInfo> SipRegisterInfoRef;
+//====================================================================================
 
 class SipSessionProgressInfo
 {
@@ -207,6 +242,10 @@ public:
 	CStdString m_cSeq;
 	bool m_onDemand;
 	bool m_onDemandOff;
+
+	struct in_addr m_senderIp;
+	struct in_addr m_receiverIp;
+	CStdString m_sipMethod;
 };
 typedef oreka::shared_ptr<SipInfo> SipInfoRef;
 
@@ -235,6 +274,7 @@ class SipRefer
 public:
 	SipRefer();
 	void ToString(CStdString& string);
+	CStdString m_sipMethod;
 	time_t m_timestamp;
 	struct in_addr m_senderIp;
 	struct in_addr m_receiverIp;
@@ -252,6 +292,8 @@ public:
 	CStdString m_referredByParty;
 	CStdString m_referredParty;
 	CStdString m_origOrkUid;
+	CStdString sourceport;
+	CStdString destport;
 };
 typedef oreka::shared_ptr<SipRefer> SipReferRef;
 

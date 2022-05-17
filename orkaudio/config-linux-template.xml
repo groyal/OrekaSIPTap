@@ -79,6 +79,7 @@
 		<!--<SipExtractFields>X-Unique-ID</SipExtractFields> -->
 		<SdpOfferAnswerMode>true</SdpOfferAnswerMode>
 		<HoldResumeReportEvents>true</HoldResumeReportEvents>
+		<SipTreat200OkAsInvite>false</SipTreat200OkAsInvite>
 	</SipUAPlugin>
 	
 	<VoIpPlugin>

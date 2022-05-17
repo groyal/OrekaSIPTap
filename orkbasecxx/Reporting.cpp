@@ -182,7 +182,8 @@ bool Reporting::AddMessage(MessageRef messageRef)
 		FLOG_WARN(LOG.reporting,"Discarding message that is not reportable: %s", msgAsSingleLineString);
 		return false;
 	}
-
+	logMsg.Format("------- reportable message -------------------");
+	LOG4CXX_INFO(LOG.reporting, logMsg);
 	// According to the legend once upon a time
 	// there was an unidentifed bug that was causing 
 	// a crash when the messages were not cloned 
@@ -200,7 +201,8 @@ bool Reporting::AddMessage(MessageRef messageRef)
 		ret = reportingThread->m_messageQueue.push(reportingMsgRef);
 		FLOG_INFO(LOG.reporting,"[%s] queuesize:%d %s: %s",reportingThread->m_tracker.ToString(),reportingThread->m_messageQueue.numElements(),ret?"enqueued":"queue full, rejected",msgAsSingleLineString);
 	}
-
+	logMsg.Format("------- go ahead add to queue -------------------");
+	LOG4CXX_INFO(LOG.reporting, logMsg);
 	EventStreamingSingleton::instance()->AddMessage(reportable->Clone());
 	return ret;
 }

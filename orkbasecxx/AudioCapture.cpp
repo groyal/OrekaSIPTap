@@ -459,6 +459,12 @@ CStdString CaptureEvent::EventTypeToString(int eventTypeEnum)
 		return ET_LOCALSIDE;
 	case	EtAudioKeepDirection:
 		return ET_AUDIOKEEPDIRECTION;
+	case 	EtRefer:
+		return ET_REFER;
+	case 	EtSubscribe:
+		return ET_SUBSCRIBE;
+	case	EtRegister:
+		return ET_REGISTER;
 	}
 	return ET_INVALID;
 }
@@ -545,6 +551,18 @@ int CaptureEvent::EventTypeToEnum(CStdString& eventTypeString)
 	else if (eventTypeString.CompareNoCase(ET_AUDIOKEEPDIRECTION) == 0)
 	{
 		eventTypeEnum = EtAudioKeepDirection;
+	}
+	else if (eventTypeString.CompareNoCase(ET_REFER) == 0)
+	{
+		eventTypeEnum = EtRefer;
+	}
+	else if (eventTypeString.CompareNoCase(ET_SUBSCRIBE) == 0)
+	{
+		eventTypeEnum = EtSubscribe;
+	}
+	else if (eventTypeString.CompareNoCase(ET_REGISTER) == 0)
+	{
+		eventTypeEnum = EtRegister;
 	}
 	return eventTypeEnum;
 }

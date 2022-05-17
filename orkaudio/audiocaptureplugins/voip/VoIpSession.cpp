@@ -21,9 +21,19 @@
 #include <list>
 #include "ConfigManager.h"
 #include "VoIpConfig.h"
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <httpclientasync.cpp>
 
 #include "MemUtils.h"
 #include <boost/algorithm/string/predicate.hpp>
+
 #include "../common/DtmfHandling.h"
 
 extern AudioChunkCallBackFunction g_audioChunkCallBack;
@@ -1750,18 +1760,32 @@ void VoIpSession::ReportSipInfo(SipInfoRef& info)
 	}
 }
 
-void VoIpSession::ReportSipRefer(SipReferRef& info)
+void VoIpSessions::ReportSipRegister(SipRegisterInfoRef& info)
 {
 	CStdString logMsg;
-	logMsg.Format("------------------ VOIPSESSION - REPORTSIP REFER -----------------");
+	logMsg.Format("------------------ VOIPSESSION - REPORTSIP REGISTER -----------------");
 	LOG4CXX_INFO(m_log, logMsg);
 
-	info->m_origOrkUid = m_orkUid;
-	CaptureEventRef event (new CaptureEvent());
-	event->m_type = CaptureEvent::EtRefer;
-	event->m_key = CONFERENCE_TRANSFER_TRACKING_TAG_KEY;
-	event->m_value = info->m_origOrkUid;
-	g_captureEventCallBack(event, m_capturePort);
+	logMsg.Format("------------------ VOIPSESSION - NOW RUN HTTP CLIENT -----------------");
+	LOG4CXX_INFO(m_log, logMsg);
+
+	auto const host ="localhost";
+    auto const port = "9000";
+    auto const target = "/orktrack/command";
+	CStdString pload;
+	info->ToString(pload);
+    auto const _body = pload;
+
+    // The io_context is required for all I/O
+    net::io_context ioc;
+
+    // Launch the asynchronous operation
+    std::make_shared<httpclientasync>(ioc)->run(host, port, target, _body);
+
+    // Run the I/O service. The call will return when
+    // the get operation is complete.
+    ioc.run();
+
 }
 
 void VoIpSession::ReportSipErrorPacket(SipFailureMessageInfoRef& info)
@@ -2201,6 +2225,9 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 
 void VoIpSessions::ReportSipSubscribe(SipSubscribeInfoRef& subscribe)
 {
+	CStdString logMsg;
+	logMsg.Format("------------------ VOIPSESSION-REPORT SIP SUBCRIBE -----------------");
+	LOG4CXX_INFO(m_log, logMsg);
 	int sipSubscripeMapSize = m_sipSubscribeMap.size();
 
 	//Keep the size of the map under 200 Sip Subscribe messages would be reasonable. Ideally, each element will be removed after its followed INVITE comes
@@ -2217,6 +2244,15 @@ void VoIpSessions::ReportSipSubscribe(SipSubscribeInfoRef& subscribe)
 	{
 		srchIndex.insert(subscribe);	//even insert new element with different type of index, new element will be appened at the end to preserve Sequence indices
 	}
+
+	// now send message to controller 
+	CaptureEventRef event(new CaptureEvent());
+	//XXX
+	event->m_type = CaptureEvent::EtSubscribe;
+	//event->m_key = key;
+	//event->m_value = value;
+	CStdString m_capturePort = "2222";
+	g_captureEventCallBack(event, m_capturePort);
 
 }
 
@@ -2435,15 +2471,32 @@ void VoIpSessions::ReportSipInfo(SipInfoRef& info)
 
 void VoIpSessions::ReportSipRefer(SipReferRef& info)
 {
-	std::map<CStdString, VoIpSessionRef>::iterator it;
-	it = m_byCallId.find(info->m_callId);
-	if(it != m_byCallId.end())
-	{
-		info->m_referToParty = GetLocalPartyMap(info->m_referToParty);
-		info->m_referredByParty = GetLocalPartyMap(info->m_referredByParty);
-		it->second->ReportSipRefer(info);
-		m_sipReferList.push_back(info);
-	}
+	
+	CStdString logMsg;
+	logMsg.Format("------------------ VOIPSESSION-REPORT SIP REFER-----------------");
+	LOG4CXX_INFO(m_log, logMsg);
+
+	logMsg.Format("------------------ VOIPSESSION - NOW RUN HTTP CLIENT -----------------");
+	LOG4CXX_INFO(m_log, logMsg);
+
+	auto const host ="localhost";
+    auto const port = "9000";
+    auto const target = "/orktrack/command";
+	CStdString pload;
+	info->ToString(pload);
+    auto const _body = pload;
+
+    // The io_context is required for all I/O
+    net::io_context ioc;
+
+    // Launch the asynchronous operation
+    std::make_shared<httpclientasync>(ioc)->run(host, port, target, _body);
+
+    // Run the I/O service. The call will return when
+    // the get operation is complete.
+    ioc.run();
+
+	
 }
 
 void VoIpSessions::UpdateEndpointWithCallInfo(SkCallInfoStruct* callInfo, IpHeaderStruct* ipHeader, TcpHeaderStruct* tcpHeader)

@@ -597,6 +597,9 @@ struct Iax2MetaTrunkEntryTs {
 #define SIP_METHOD_INFO_SIZE 4
 #define SIP_METHOD_REFER "REFER"
 #define SIP_METHOD_REFER_SIZE 5
+#define SIP_METHOD_REGISTER "REGISTER"
+#define SIP_METHOD_REGISTER_SIZE 8
+
 
 //==============================================
 #pragma pack(push,1)	// avoid padded bytes at the end of the struct

@@ -492,7 +492,9 @@ void DetectUsefulUdpPacket(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 		if(!detectedUsefulPacket) {
 			detectedUsefulPacket= TrySip200Ok(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
 		}
-
+		if(!detectedUsefulPacket) {
+			detectedUsefulPacket= TrySipRegister(ethernetHeader, ipHeader, udpHeader, udpPayload, ipPacketEnd);
+		}
 
 		if(DLLCONFIG.m_sipNotifySupport == true){
 			if(!detectedUsefulPacket) {

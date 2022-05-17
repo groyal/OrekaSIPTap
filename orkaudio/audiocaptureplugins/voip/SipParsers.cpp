@@ -584,6 +584,137 @@ bool TrySipNotify(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 	}
 	return false;
 }
+bool TrySipRegister(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
+{
+	bool result = false; 
+	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
+	char* sipEnd = (char*)udpPayload + sipLength;
+
+	if(sipLength < (int)sizeof(SIP_METHOD_REGISTER) || sipEnd > (char*)packetEnd)
+	{
+		return false;
+	}
+	if (memcmp(SIP_METHOD_REGISTER, (void*)udpPayload, SIP_INFO_SIZE) == 0)
+	{
+
+		result = true;
+
+		char* sipUriAttribute = memFindAfter("REGISTER ", (char*)udpPayload, sipEnd);
+		char* sipUriAttributeEnd = memFindEOL(sipUriAttribute, sipEnd);
+
+		CStdString logMsg;
+		logMsg = "====================== SIP REGISTER DETECTED =============================";
+		LOG4CXX_INFO(s_sipPacketLog, logMsg);
+
+		char* fromField = memFindAfter("From:", (char*)udpPayload, sipEnd);
+		if(!fromField)
+		{
+			fromField = memFindAfter("\nf:", (char*)udpPayload, sipEnd);
+		}
+		char* toField = memFindAfter("To:", (char*)udpPayload, sipEnd);
+		if(!toField)
+		{
+			toField = memFindAfter("\nt:", (char*)udpPayload, sipEnd);
+		}
+
+		SipRegisterInfoRef info(new SipRegisterInfo());
+		// load up info 
+		info->m_senderIp = ipHeader->ip_src;
+		info->m_receiverIp = ipHeader->ip_dest;
+		memcpy(info->m_senderMac, ethernetHeader->sourceMac, sizeof(info->m_senderMac));
+		memcpy(info->m_receiverMac, ethernetHeader->destinationMac, sizeof(info->m_receiverMac));
+
+		char* fromFieldEnd = memFindEOL(fromField, sipEnd);
+		char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
+
+		GrabLine(sipUriAttribute, sipEnd, info->m_request_uri);
+
+		info->m_captureport = udpHeader->dest;
+
+		if(fromField)
+		{
+			if(s_sipExtractionLog->isDebugEnabled())
+			{
+				CStdString from;
+				GrabLine(fromField, sipEnd, from);
+				LOG4CXX_DEBUG(s_sipExtractionLog, "from: " + from);
+			}
+
+			char* fromFieldEnd = memFindEOL(fromField, sipEnd);
+
+			GrabSipName(fromField, fromFieldEnd, info->m_fromName);
+
+			char* sipUser = memFindAfter("sip:", fromField, fromFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, fromFieldEnd, info->m_from);
+				}
+				GrabSipUriDomain(sipUser, fromFieldEnd, info->m_fromDomain);
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(fromField, fromFieldEnd, info->m_from);
+				}
+				else
+				{
+					GrabSipUriUser(fromField, fromFieldEnd, info->m_from);
+				}
+				GrabSipUriDomain(fromField, fromFieldEnd, info->m_fromDomain);
+			}
+		}
+		if(toField)
+		{
+			CStdString to;
+			char* toFieldEnd = GrabLine(toField, sipEnd, to);
+			LOG4CXX_DEBUG(s_sipExtractionLog, "to: " + to);
+
+			GrabSipName(toField, toFieldEnd, info->m_toName);
+
+			char* sipUser = memFindAfter("sip:", toField, toFieldEnd);
+			if(sipUser)
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(sipUser, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(sipUser, toFieldEnd, info->m_to);
+				}
+				GrabSipUriDomain(sipUser, toFieldEnd, info->m_toDomain);
+			}
+			else
+			{
+				if(DLLCONFIG.m_sipReportFullAddress)
+				{
+					GrabSipUserAddress(toField, toFieldEnd, info->m_to);
+				}
+				else
+				{
+					GrabSipUriUser(toField, toFieldEnd, info->m_to);
+				}
+				GrabSipUriDomain(toField, toFieldEnd, info->m_toDomain);
+			}
+		}
+		char* userAgentField = memFindAfter("\nUser-Agent:", (char*)udpPayload, sipEnd);
+		if(userAgentField)
+		{
+			GrabTokenSkipLeadingWhitespacesRegister(userAgentField, sipEnd, info->m_userAgent);
+		}
+
+		VoIpSessionsSingleton::instance()->ReportSipRegister(info);
+
+	}
+	return result;
+}
 
 bool TrySipInfo(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
@@ -1235,6 +1366,9 @@ bool TrySipSubscribe(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 	{
 		sipMethod = SIP_METHOD_SUBSCRIBE;
 		result = true;
+		CStdString logMsg;
+		logMsg = "====================== SIP SUBSCRIBE DETECTED =============================";
+		LOG4CXX_INFO(s_sipPacketLog, logMsg);
 
 		char* eventField = memFindAfter("Event:", (char*)udpPayload, sipEnd);
 
@@ -1255,10 +1389,10 @@ bool TrySipSubscribe(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 			LOG4CXX_DEBUG(s_sipExtractionLog,  "SIP SUBSCRIBE callId:" + info->m_callId);
 		}
 		//For now, we only concern if SIP SUBSCRIBE is of Sip Call Pick Up Service, otherwise just ignore it
-		if(info->m_event.CompareNoCase("pickup") == 0)
-		{
+		//if(info->m_event.CompareNoCase("pickup") == 0)
+		//{
 			VoIpSessionsSingleton::instance()->ReportSipSubscribe(info);
-		}
+		//}
 
 	}
 
@@ -1781,7 +1915,9 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 
 bool TrySipRefer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
+
 	bool result = false;
+	CStdString logMsg;
 
 	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
 	char* sipEnd = (char*)udpPayload + sipLength;
@@ -1792,6 +1928,8 @@ bool TrySipRefer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 	else if(memcmp(SIP_METHOD_REFER, (void*)udpPayload, SIP_METHOD_REFER_SIZE) == 0)
 	{
 		result = true;
+		logMsg = "=============  SIPPARSER: SIP REFER MESSAGE FOUND ================";
+		LOG4CXX_DEBUG(s_sipPacketLog, logMsg);
 
 		SipReferRef info(new SipRefer());
 		info->m_timestamp = time(NULL);
@@ -1889,6 +2027,8 @@ bool TrySipRefer(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 		}
 		info->m_senderIp = ipHeader->ip_src;
 		info->m_receiverIp = ipHeader->ip_dest;
+		info->destport = std::to_string(udpHeader->dest);
+		//info->sourceport =  std::to_string(udpHeader->source);
 
 		CStdString logMsg;
 

@@ -16,10 +16,7 @@
 #include "Utils.h"
 #include "MemUtils.h"
 
-SipSubscribeInfo::SipSubscribeInfo()
-{
 
-}
 //==========================================================
 SipInviteInfo::SipInviteInfo() : m_telephoneEventPayloadType(0)
 {
@@ -188,6 +185,7 @@ SipRefer::SipRefer()
 {
 	m_senderIp.s_addr = 0;
 	m_receiverIp.s_addr = 0;
+	m_sipMethod = "REFER";
 }
 
 void SipRefer::ToString(CStdString& string)
@@ -197,8 +195,45 @@ void SipRefer::ToString(CStdString& string)
 	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
 	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
-	string.Format("sender:%s rcvr:%s from:%s@%s to:%s@%s fromname:%s toname:%s referto:%s referredby:%s referredParty:%s callid:%s", senderIp, receiverIp, m_from, m_fromDomain, m_to, m_toDomain, m_fromName, m_toName, m_referToParty, m_referredByParty, m_referredParty, m_callId);
+	string.Format("{'method':'%s', sender':'%s', 'rcvr':'%s', 'from':'%s@%s', 'to':'%s@%s', 'fromname':'%s', 'toname':'%s', 'referto':'%s', 'referredby':'%s', 'referredParty':'%s', 'callid':'%s'}", m_sipMethod, senderIp, receiverIp, m_from, m_fromDomain, m_to, m_toDomain, m_fromName, m_toName, m_referToParty, m_referredByParty, m_referredParty, m_callId);
 }
+//==================================================
+SipSubscribeInfo::SipSubscribeInfo()
+{
+	m_senderIp.s_addr = 0;
+	m_receiverIp.s_addr = 0;
+	m_sipMethod = "SUBSCRIBE";
 
+}
+void SipSubscribeInfo::ToString(CStdString& string)
+{
+	char senderIp[16];
+	char receiverIp[16];
+	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+
+	//string.Format("{'method':'SUBSCRIBE', sender':'%s', 'rcvr':'%s', 'from':'%s@%s', 'to':'%s@%s', 'fromname':'%s', 'toname':'%s' }", senderIp, receiverIp, m_from, m_fromDomain, m_to, m_toDomain, m_fromName, m_toName);
+}
+//==================================================
+SipRegisterInfo::SipRegisterInfo()
+{
+	m_senderIp.s_addr = 0;
+	m_receiverIp.s_addr = 0;
+	m_sipMethod = "REGISTER";
+
+}
+void SipRegisterInfo::ToString(CStdString& string)
+{
+	char senderIp[16];
+	char receiverIp[16];
+	CStdString senderMac, receiverMac;
+
+	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
+	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
+	inet_ntopV4(AF_INET, (void*)&m_senderIp, senderIp, sizeof(senderIp));
+	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
+
+	string.Format("{'method':'%s', sender':'%s', 'rcvr':'%s', 'sendermac':'%s', 'receivermac','%s', 'from':'%s@%s', 'to':'%s@%s', 'fromname':'%s', 'toname':'%s', 'UserAgent':'%s', 'requesturi':'%s'}", m_sipMethod , senderIp, receiverIp, senderMac, receiverMac, m_from, m_fromDomain, m_to, m_toDomain, m_fromName, m_toName, m_userAgent, m_request_uri );
+}
 
 

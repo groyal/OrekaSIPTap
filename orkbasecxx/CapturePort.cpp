@@ -291,8 +291,9 @@ void CapturePort::AddAudioChunk(AudioChunkRef chunkRef)
 void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 {
 	CStdString logMsg;
-	logMsg.Format("--------------- ADD CAPTURE EVENT CALLED ----------------------");
+	logMsg.Format("--------------- ADDCAPTUREEVENT function " + CaptureEvent::EventTypeToString(eventRef->m_type) + "----------------------");
 	LOG4CXX_INFO(s_log, logMsg);
+
 	FilterCaptureEvent(eventRef);
 
 	m_lastUpdated = time(NULL);
@@ -309,6 +310,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		{
 			audioTapeRef->SetShouldStop();	// force stop of previous tape
 		}
+		logMsg.Format("--------------- EtStart - add audiotape and add capture event -----" );
+		LOG4CXX_INFO(s_log, logMsg);
 		audioTapeRef.reset(new AudioTape(m_id));	// Create a new tape
 		audioTapeRef->AddCaptureEvent(eventRef, true);
 
@@ -316,7 +319,8 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		LOG4CXX_INFO(s_log, "[" + m_audioTapeRef->m_trackingId + "] #" + m_id + " start");
 	}
 
-	if (!audioTapeRef.get())
+	if (!audioTapeRef.get() && !(eventRef->m_type == CaptureEvent::EtRefer) && !(eventRef->m_type == CaptureEvent::EtSubscribe)
+						&& !(eventRef->m_type == CaptureEvent::EtRegister) )
 	{
 		if(!CONFIG.m_vad && !CONFIG.m_audioSegmentation)
 		{
@@ -327,7 +331,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 	}
 	else
 	{
-
+		
 		// Ok, at this point, we know we have a valid audio tape
 		switch(eventRef->m_type)
 		{
@@ -403,26 +407,36 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 			Reporting::Instance()->AddMessage(msgRef);
 			break;
 		}
+		
+		case CaptureEvent::EtRefer:
+		{
+			logMsg.Format("--------------- CAPTURE EVENT EtRefer -----" );
+			LOG4CXX_INFO(s_log, logMsg);
+			
+			logMsg.Format("------------------  CAPTURE EVENT EtRefer - Now Adding Reporting Message ------");
+			LOG4CXX_INFO(s_log, logMsg);
+			
+			break;
+		}
+		
+		case CaptureEvent::EtRegister:
+		{
+			logMsg.Format("--------------- CAPTURE EVENT EtRegister -----" );
+			LOG4CXX_INFO(s_log, logMsg);
+			break;
+		}
+		case CaptureEvent::EtSubscribe:
+		{
+			logMsg.Format("--------------- CAPTURE EVENT EtSubscribe -----" );
+			LOG4CXX_INFO(s_log, logMsg);
+			break;
+		}
 		case CaptureEvent::EtLocalSide:
 		case CaptureEvent::EtAudioKeepDirection:
 		case CaptureEvent::EtDirection:
 		case CaptureEvent::EtRemoteParty:
 		case CaptureEvent::EtLocalParty:
 		case CaptureEvent::EtLocalEntryPoint:
-/*
-		case CaptureEvent::EtRefer:
-		{
-			logMsg.Format("--------------- CAPTURE EVENT EtRefer -----" );
-			audioTapeRef->AddCaptureEvent(eventRef, true);
-			// Generate tape update message
-			MessageRef msgRef;
-			audioTapeRef->GetMessage(msgRef);
-			logMsg.Format("------------------  CAPTURE EVENT EtRefer - Now Adding Reporting Message ------");
-			LOG4CXX_INFO(s_log, logMsg);
-			Reporting::Instance()->AddMessage(msgRef);
-			break;
-		}
-*/
 		default:
 			logMsg.Format("--------------- CAPTURE EVENT default -----" );
 			LOG4CXX_INFO(s_log, logMsg);

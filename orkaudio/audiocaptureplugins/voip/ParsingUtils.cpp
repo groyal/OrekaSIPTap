@@ -103,6 +103,23 @@ void GrabTokenSkipLeadingWhitespaces(char* in, char* limit, CStdString& out)
 	}
 	GrabToken(c, limit, out);
 }
+void GrabTokenSkipLeadingWhitespacesRegister(char* in, char* limit, CStdString& out)
+{
+	char* c = in;
+	while(*c == 0x20 && (*c != '\0' && *c != 0x0D && *c != 0x0A) && c<limit)
+	{
+		c = c+1;
+	}
+	GrabTokenRegister(c, limit, out);
+}
+// Grabs a string in memory until encountering null char, a CR or LF chars
+void GrabTokenRegister(char* in, char* limit, CStdString& out)
+{
+	for(char* c = in; *c != '\0' && *c != 0x0D && *c != 0x0A && c<limit; c = c+1)
+	{
+		out += *c;
+	}
+}
 
 void GrabAlphaNumToken(char * in, char* limit, CStdString& out)
 {
