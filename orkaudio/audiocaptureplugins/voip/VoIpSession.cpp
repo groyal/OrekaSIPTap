@@ -30,6 +30,7 @@
 #include <iostream>
 #include <string>
 #include <httpclientasync.cpp>
+#include <boost/lexical_cast.hpp>
 
 #include "MemUtils.h"
 #include <boost/algorithm/string/predicate.hpp>
@@ -2341,31 +2342,48 @@ void VoIpSessions::ReportSip302MovedTemporarily(Sip302MovedTemporarilyInfoRef& i
 
 void VoIpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 {
+
+	CStdString logMsg;
+	logMsg.Format("------------------ VOIPSESSION-REPORT SIP 200 OKAY media port " + info->m_mediaPort + "-----------------");
+	LOG4CXX_INFO(m_log, logMsg);
+	info->ToString(logMsg);
+	LOG4CXX_INFO(m_log, logMsg);
+
+
 	std::map<CStdString, VoIpSessionRef>::iterator pair;
 
 	pair = m_byCallId.find(info->m_callId);
 	if (pair != m_byCallId.end())
 	{
+		logMsg.Format("callid not in pair");
+		LOG4CXX_INFO(m_log, logMsg);
 		VoIpSessionRef session = pair->second;
 		unsigned short mediaPort = std::atoi(info->m_mediaPort);
 
 		if(info->m_hasSdp && DLLCONFIG.m_sipUse200OkMediaAddress && DLLCONFIG.m_sipDynamicMediaAddress)
 		{
+			logMsg.Format("has sdp and use 200k media address and dynamics media address");
+			LOG4CXX_INFO(m_log, logMsg);
 			SetMediaAddress(session, info->m_mediaIp, mediaPort);
 		}
 		else if(info->m_hasSdp && DLLCONFIG.m_sipUse200OkMediaAddress && !session->m_numRtpPackets) 
 		{
-			// Session has not yet received RTP packets
+			logMsg.Format("Session has not yet received RTP packets");
+			LOG4CXX_INFO(m_log, logMsg);
+
 			if(!session->m_rtpIp.s_addr || DLLCONFIG.m_rtpAllowMultipleMappings)
 			{
-				// Session has empty RTP address or can have multiple RTP addresses.
+				
+				logMsg.Format("Session has empty RTP address or can have multiple RTP addresses.");
+				LOG4CXX_INFO(m_log, logMsg);
 				SetMediaAddress(session, info->m_mediaIp, mediaPort);
 			}
 			else
 			{
 				if(!DLLCONFIG.m_lanIpRanges.Matches(session->m_rtpIp))
 				{
-					// Session has a public IP
+					logMsg.Format("Session has a public IP");
+					LOG4CXX_INFO(m_log, logMsg);
 					if(!DLLCONFIG.m_lanIpRanges.Matches(info->m_mediaIp))
 					{
 						SetMediaAddress(session, info->m_mediaIp, mediaPort);
@@ -2373,18 +2391,48 @@ void VoIpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 				}
 				else
 				{
-					// Session has a private IP
+					logMsg.Format("Session has a private IP");
+					LOG4CXX_INFO(m_log, logMsg);
 					SetMediaAddress(session, info->m_mediaIp, mediaPort);
 				}
 			}
 		}
-		//else
-		//{
+		else
+		{
+			logMsg.Format("dont set Media Address");
+			LOG4CXX_INFO(m_log, logMsg);
 		//	CStdString logString;
 		//	logString.Format("hasSDP:%d use200:%d numRtpPkts:%d callId:%s", info->m_hasSdp, DLLCONFIG.m_sipUse200OkMediaAddress, session->m_numRtpPackets, info->m_callId);
 		//	LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] 200Ok RTP address not updated: " + session->m_ipAndPort + " " + logString );
-		//}
+		}
 	}
+	if (info->m_mediaPort.empty()) { 
+
+
+			CStdString _h = CONFIG.m_trackerHostname.front();
+			CStdString _t = "/" + CONFIG.m_trackerServicename + "/command";
+			auto const host = _h;
+    		auto const port = boost::lexical_cast<CStdString>( CONFIG.m_trackerTcpPort);
+    		auto const target = _t;
+
+			logMsg = "++++++++++++++++++++++++++++++++++++++++++++++++++++++++ HTTP POST " + host + ":" + port + target + "++++++++++++++++++++++++++++++++++++++++++++++++";
+			LOG4CXX_INFO(m_log, logMsg);
+
+			CStdString pload;
+			info->ToString(pload);
+    		auto const _body = pload;
+
+    		// The io_context is required for all I/O
+    		net::io_context ioc;
+
+    		// Launch the asynchronous operation
+    		std::make_shared<httpclientasync>(ioc)->run(host, port, target, _body);
+
+		    // Run the I/O service. The call will return when
+    		// the get operation is complete.
+    		ioc.run();
+	}
+
 	//else
 	//{
 	//	LOG4CXX_INFO(m_log, "200OK Did not find " + info->m_callId);
@@ -2484,8 +2532,11 @@ void VoIpSessions::ReportSipRefer(SipReferRef& info)
 	CStdString _h = CONFIG.m_trackerHostname.front();
 	CStdString _t = "/" + CONFIG.m_trackerServicename + "/command";
 	auto const host = _h;
-    auto const port = std::to_string(CONFIG.m_trackerTcpPort).c_str();
+    auto const port = boost::lexical_cast<CStdString>( CONFIG.m_trackerTcpPort);
     auto const target = _t;
+
+	logMsg = "++++++++++++++++++++++++++++++++++++++++++++++++++++++++ HTTP POST " + host + ":" + port + target + "++++++++++++++++++++++++++++++++++++++++++++++++";
+	LOG4CXX_INFO(m_log, logMsg);
 
 	CStdString pload;
 	info->ToString(pload);
@@ -3254,6 +3305,9 @@ CStdString VoIpSessions::MediaAddressToString(unsigned long long ipAndPort)
 
 void VoIpSessions::SetMediaAddress(VoIpSessionRef& session, struct in_addr mediaIp, unsigned short mediaPort)
 {
+	CStdString logMsg;
+	logMsg.Format("------------------ VOIPSESSION SET MEDIA ADDRESS -----------------");
+	LOG4CXX_INFO(m_log, logMsg);
 	if(mediaPort == 0)
 	{
 		return;
@@ -3261,7 +3315,6 @@ void VoIpSessions::SetMediaAddress(VoIpSessionRef& session, struct in_addr media
 	if(DLLCONFIG.m_mediaAddressBlockedIpRanges.Matches(mediaIp))
 	{
 		char szMediaIp[16];
-		CStdString logMsg;
 		inet_ntopV4(AF_INET, (void*)&mediaIp, szMediaIp, sizeof(szMediaIp));
 
 		logMsg.Format("[%s] %s,%d rejected by MediaAddressBlockedIpRanges", session->m_trackingId, szMediaIp, mediaPort);
@@ -3283,8 +3336,6 @@ void VoIpSessions::SetMediaAddress(VoIpSessionRef& session, struct in_addr media
 			return;
 		}
 	}
-
-	CStdString logMsg;
 
 	unsigned long long mediaAddress;
 	Craft64bitMediaAddress(mediaAddress, mediaIp, mediaPort);
@@ -3330,16 +3381,20 @@ void VoIpSessions::SetMediaAddress(VoIpSessionRef& session, struct in_addr media
 	}
 	if(doChangeMediaAddress)
 	{
-		if(m_log->isInfoEnabled())
-		{
+		logMsg.Format(" Media Address changing ");
+		LOG4CXX_INFO(m_log, logMsg);
+		//if(m_log->isInfoEnabled())
+		//{
 			char szEndPointIp[16];
 			inet_ntopV4(AF_INET, (void*)&session->m_endPointIp, szEndPointIp, sizeof(szEndPointIp));
 			logMsg.Format("[%s] media address:%s %s callId:%s endpoint:%s", session->m_trackingId, MediaAddressToString(mediaAddress), VoIpSession::ProtocolToString(session->m_protocol),session->m_callId, szEndPointIp);
 			LOG4CXX_INFO(m_log, logMsg);
-		}
+		//}
 
 		if (DLLCONFIG.m_rtpAllowMultipleMappings == false)
 		{
+			logMsg.Format(" rtp allow multiple mappings is false ");
+			LOG4CXX_INFO(m_log, logMsg);
 			RemoveFromMediaAddressMap(session, session->m_ipAndPort);	// remove old mapping of the new session before remapping
 			session->m_mediaAddresses.clear();
 			//m_byIpAndPort.erase(session->m_ipAndPort);
@@ -3351,6 +3406,9 @@ void VoIpSessions::SetMediaAddress(VoIpSessionRef& session, struct in_addr media
 
 		CStdString numSessions = IntToString(m_byIpAndPort.size());
 		LOG4CXX_DEBUG(m_log, CStdString("ByIpAndPort: ") + numSessions);
+	} else {
+		logMsg.Format(" Media Address not changed ");
+		LOG4CXX_INFO(m_log, logMsg);
 	}
 }
 

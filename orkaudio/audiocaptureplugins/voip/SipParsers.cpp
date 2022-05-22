@@ -18,6 +18,9 @@
 #include "VoIpConfig.h"
 #include <boost/algorithm/string/predicate.hpp>
 #include "MemUtils.h"
+#include <string>
+#include <vector>
+#include <boost/algorithm/string.hpp>
 
 static LoggerPtr s_parsersLog = Logger::getLogger("parsers.sip");
 static LoggerPtr s_sipPacketLog = Logger::getLogger("packet.sip");
@@ -861,6 +864,7 @@ bool TryLogFailedSip(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHea
 bool TrySipSessionProgress(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
 	bool result = false;
+	CStdString logMsg;
 
 	int sipLength = ntohs(udpHeader->len) - sizeof(UdpHeaderStruct);
 	char* sipEnd = (char*)udpPayload + sipLength;
@@ -901,6 +905,15 @@ bool TrySipSessionProgress(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
 			audioField = memFindAfter("m=audio ", callIdField, sipEnd);
 			connectionAddressField = memFindAfter("c=IN IP4 ", callIdField, sipEnd);
+
+			if (audioField) { 
+				logMsg = "------------------SIP PROGRESS----------------------------";
+				LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
+				logMsg = std::string(audioField);
+				LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
+				logMsg = "----------------------------------------------";		
+				LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
+			}
 		}
 		if(audioField && connectionAddressField)
 		{
@@ -1008,6 +1021,9 @@ bool TrySipSessionProgress(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct*
 
 bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, UdpHeaderStruct* udpHeader, u_char* udpPayload, u_char* packetEnd)
 {
+
+	CStdString logMsg;
+
 	bool result = false;
 
 	if(DLLCONFIG.m_sipTreat200OkAsInvite == true)
@@ -1044,6 +1060,11 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 			callIdField = memFindAfter("\ni:", (char*)udpPayload, sipEnd);
 		}
 
+		char* userAgentField = memFindAfter("\nUser-Agent:", (char*)udpPayload, sipEnd);
+		if(userAgentField)
+		{
+			GrabTokenSkipLeadingWhitespacesRegister(userAgentField, sipEnd, info->m_userAgent);
+		}
 		char* audioField = NULL;
 		char* connectionAddressField = NULL;
 
@@ -1052,13 +1073,30 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
 			audioField = memFindAfter("m=audio ", callIdField, sipEnd);
 			connectionAddressField = memFindAfter("c=IN IP4 ", callIdField, sipEnd);
+
+			if (audioField) { 
+				logMsg = "------------------SIP 200 OKAY----------------------------";
+				LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
+				logMsg = std::string(audioField);
+				LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
+				logMsg = "----------------------------------------------";		
+				LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
+			}
+
 		}
 		if(audioField && connectionAddressField)
 		{
+			logMsg = "--------------- HAS SDP ----------------------------";
+			LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
 			info->m_hasSdp = true;
 
+			// this is the RTP port the media is on 
 			GrabToken(audioField, sipEnd, info->m_mediaPort);
+			logMsg = "------- Media Port = " + info->m_mediaPort;
 
+			LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
+
+			// this is the IP address to connect to. 
 			CStdString connectionAddress;
 			GrabToken(connectionAddressField, sipEnd, connectionAddress);
 			struct in_addr mediaIp;
@@ -1068,7 +1106,29 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 				{
 					info->m_mediaIp = mediaIp;
 				}
+				logMsg = "------- IPAddress for Media = " + connectionAddress;
+				LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);				
+
 			}
+
+			// We also need the codec they are going to use 
+			// so need to pull out the audio= line and get the preferred codec. 
+			CStdString rtp_codec;
+			CStdString ax = std::string(audioField);
+
+			int pos = ax.find("a=rtpmap:");  		   // find first rtpmap and trim out
+			ax = ax.substr(pos);
+			pos = ax.find('\n'); 
+			ax= ax.substr(0, pos);						// this should be the first rtpmap line
+
+			std::vector<CStdString> v;
+			boost::split(v, ax, ::isspace);
+			rtp_codec = v[1];
+			logMsg = "------- Codec for Media = <" + rtp_codec + ">";
+			LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);	
+			info->m_codec = rtp_codec;
+
+
 		}
 
 		if(fromField)
@@ -1139,19 +1199,19 @@ bool TrySip200Ok(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader,
 		info->m_senderIp = ipHeader->ip_src;
 		info->m_receiverIp = ipHeader->ip_dest;
 
-		CStdString logMsg;
+		//CStdString logMsg;
 
 		info->ToString(logMsg);
 		logMsg = "200 OK: " + logMsg;
 		if(info->m_hasSdp)
 		{
-			LOG4CXX_INFO(s_sipPacketLog, logMsg);
+			LOG4CXX_INFO(s_sipPacketLog, " HAS SDP " + logMsg);
 		}
 		else
 		{
 			LOG4CXX_DEBUG(s_sipPacketLog, logMsg);
 		}
-
+		
 		VoIpSessionsSingleton::instance()->ReportSip200Ok(info);
 	}
 	return result;
@@ -1680,6 +1740,15 @@ bool TrySipInvite(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader
 			GrabTokenSkipLeadingWhitespaces(callIdField, sipEnd, info->m_callId);
 			audioField = memFindAfter("m=audio ", callIdField, sipEnd);
 			connectionAddressField = memFindAfter("c=IN IP4 ", callIdField, sipEnd);
+
+			if (audioField) { 
+				logMsg = "-----------------SIP INVITE -----------------------------";
+				LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
+				logMsg = std::string(audioField);
+				LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
+				logMsg = "----------------------------------------------";		
+				LOG4CXX_DEBUG(s_sipExtractionLog, logMsg);
+			}
 		}
 		if(replacesField)
 		{

@@ -103,6 +103,7 @@ void GrabTokenSkipLeadingWhitespaces(char* in, char* limit, CStdString& out)
 	}
 	GrabToken(c, limit, out);
 }
+// this DOESNOT truncate with Space, only with EOL so allows for spaces in UserAgent field. 
 void GrabTokenSkipLeadingWhitespacesRegister(char* in, char* limit, CStdString& out)
 {
 	char* c = in;

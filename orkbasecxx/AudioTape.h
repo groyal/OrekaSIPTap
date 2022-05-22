@@ -76,7 +76,10 @@ public:
 	time_t m_beginDate;
 	int m_duration;
 	CStdString m_localIp;
+	CStdString m_localRtpPort;
 	CStdString m_remoteIp;
+	CStdString m_remoteRtpPort;
+	CStdString m_codec;
 	CStdString m_filename;
 	CStdString m_nativeCallId;
 	bool m_onDemand;
@@ -129,7 +132,10 @@ public:
 	time_t m_endDate;
 	time_t m_duration;
 	CStdString m_localIp;
+	CStdString m_localRtpPort;
 	CStdString m_remoteIp;
+	CStdString m_remoteRtpPort;
+	CStdString m_codec;
 	CStdString m_trackingId;
 	CStdString m_nativeCallId;
 	StateEnum m_state;

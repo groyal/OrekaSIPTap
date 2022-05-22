@@ -316,7 +316,7 @@ void CapturePort::AddCaptureEvent(CaptureEventRef eventRef)
 		audioTapeRef->AddCaptureEvent(eventRef, true);
 
 		m_audioTapeRef = audioTapeRef;
-		LOG4CXX_INFO(s_log, "[" + m_audioTapeRef->m_trackingId + "] #" + m_id + " start");
+		LOG4CXX_INFO(s_log, "[" + m_audioTapeRef->m_trackingId + "] #" + m_id + " start  rtpport " + m_audioTapeRef->m_portId );
 	}
 
 	if (!audioTapeRef.get() && !(eventRef->m_type == CaptureEvent::EtRefer) && !(eventRef->m_type == CaptureEvent::EtSubscribe)

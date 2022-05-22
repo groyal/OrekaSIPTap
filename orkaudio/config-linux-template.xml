@@ -70,7 +70,7 @@
 		<!--    SiprecBroadWorks, SiprecAcme, CiscoBib, SiprecMetaswitch,         -->
 		<!--    SiprecOpenSips, Truphone, SiprecSonus, SiprecSangoma,             -->
 		<!--    SiprecAudioCodes, SipGeneric, Softphone                           -->
-		<!-- <SipMode>SipGeneric</SipMode> -->
+		<SipMode>SipGeneric</SipMode>
 		<!-- Uncomment the following for SIPREC configurations                    -->
 		<!-- <SupportFeatures>resource-priority,siprec</SupportFeatures> -->
 		<!-- extract any arbitrary SIPREC XML field as a tag -->
@@ -107,8 +107,8 @@
 		<!--<PcapFilter>net 217.14.0.0/16 or host 10.0.0.1</PcapFilter>-->
 
 		<!--<SipOverTcpSupport>yes</SipOverTcpSupport>-->
-		<!--<SipReportFullAddress>yes</SipReportFullAddress>-->
-		<!--<SipUse200OkMediaAddress>yes</SipUse200OkMediaAddress>-->
+		<SipReportFullAddress>yes</SipReportFullAddress>
+		<SipUse200OkMediaAddress>yes</SipUse200OkMediaAddress>
 
 		<!-- Those two parameters are only needed for call direction detection (one or the other) -->
 		<!--<SipDomains>company.com, 65.34.25.87</SipDomains>-->

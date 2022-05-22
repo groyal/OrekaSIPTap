@@ -60,7 +60,10 @@ void AudioTapeDescription::Define(Serializer* s)
 	s->StringValue("remoteParty", m_remoteParty);
 	s->StringValue("localEntryPoint", m_localEntryPoint);
 	s->StringValue("localIp", m_localIp);
+	s->StringValue("localRtpPort", m_localRtpPort);
 	s->StringValue("remoteIp", m_remoteIp);
+	s->StringValue("remoteRtpPort", m_remoteRtpPort);
+	s->StringValue("codec", m_codec);
 	s->StringValue("filename", m_filename);
 	s->StringValue("nativeCallId", m_nativeCallId);
 	s->BoolValue("ondemand", m_onDemand);
@@ -399,6 +402,9 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 	switch(eventRef->m_type)
 	{
 	case CaptureEvent::EtStart:
+
+		logMsg.Format("----------------- AUDIO TAPE ETSTART ------------------------");
+		LOG4CXX_DEBUG(LOG.tapeLog, logMsg);
 		m_trackingId = eventRef->m_value;
 		if (m_state == StateCreated)
 		{
@@ -431,7 +437,10 @@ void AudioTape::AddCaptureEvent(CaptureEventRef eventRef, bool send)
 			atd.m_localParty = m_localParty;
 			atd.m_remoteParty = m_remoteParty;
 			atd.m_localIp = m_localIp;
+			atd.m_localRtpPort = m_localRtpPort;
 			atd.m_remoteIp = m_remoteIp;
+			atd.m_remoteRtpPort = m_remoteRtpPort;
+			atd.m_codec = m_codec;
 			atd.m_onDemand = m_onDemand;
 			atd.m_nativeCallId = m_nativeCallId;
 			atd.m_filename = GetFilename();

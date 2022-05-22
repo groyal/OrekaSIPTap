@@ -161,6 +161,8 @@ public:
 	bool m_hasSdp;
 	struct in_addr m_mediaIp;
 	CStdString m_mediaPort;
+	CStdString m_codec;
+	CStdString m_userAgent;
 
 	struct in_addr m_senderIp;
 	struct in_addr m_receiverIp;

@@ -119,11 +119,11 @@ void Sip200OkInfo::ToString(CStdString& string)
 
 	if(m_mediaPort.size())
 	{
-		string.Format("sender:%s from:%s RTP:%s,%s to:%s rcvr:%s callid:%s", senderIp, m_from, mediaIp, m_mediaPort, m_to, receiverIp, m_callId);
+		string.Format("{'method':'200OK', 'sender':'%s', 'from':'%s', 'RTP':'%s'. 'port':'%s', 'to':'%s', 'rcvr':'%s'. 'callid':'%s', 'codec':'%s', 'useragent':'%s'}", senderIp, m_from, mediaIp, m_mediaPort, m_to, receiverIp, m_callId, m_codec, m_userAgent);
 	}
 	else
 	{
-		string.Format("sender:%s from:%s to:%s rcvr:%s callid:%s", senderIp, m_from, m_to, receiverIp, m_callId);
+		string.Format("{'method':'200OK', 'sender':'%s', 'from':'%s', 'to':'%s', 'rcvr':'%s', 'callid':'%s', 'useragent':'%s'}", senderIp, m_from, m_to, receiverIp, m_callId, m_userAgent);
 	}
 }
 
