@@ -499,9 +499,6 @@ bool TrySipBye(EthernetHeaderStruct* ethernetHeader, IpHeaderStruct* ipHeader, U
 		info->m_senderIp = ipHeader->ip_src;
 		info->m_receiverIp = ipHeader->ip_dest;
 
-		CStdString logMsg;
-		info->ToString(logMsg);
-		LOG4CXX_INFO(s_sipPacketLog, "BYE: " + logMsg);
 		if(callIdField && DLLCONFIG.m_sipIgnoreBye == false)
 		{
 			VoIpSessionsSingleton::instance()->ReportSipBye(info);

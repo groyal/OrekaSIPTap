@@ -43,7 +43,7 @@ void SipInviteInfo::ToString(CStdString& string)
 	MemMacToHumanReadable((unsigned char*)m_senderMac, senderMac);
 	MemMacToHumanReadable((unsigned char*)m_receiverMac, receiverMac);
 
-	string.Format("sender:%s from:%s@%s RTP:%s,%s to:%s@%s rcvr:%s callid:%s smac:%s rmac:%s fromname:%s toname:%s ua:%s requesturi:%s a:sendonly:%s telephone-event-payload-type:%d", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac, m_fromName, m_toName, m_userAgent, m_requestUri, ((m_attrSendonly == true) ? "present" : "not-present"), m_telephoneEventPayloadType);
+	string.Format("{'method':'INVITE', 'sender':'%s', 'from':'%s@%s', 'RTP':'%s,%s', 'to':'%s@%s', 'rcvr':'%s', 'callid':'%s', 'smac':'%s', 'rmac':'%s', 'fromname':'%s', 'toname':'%s', 'ua':'%s', 'requesturi':'%s', 'a:sendonly':'%s', 'telephone-event-payload-type':'%d' }", senderIp, m_from, m_fromDomain, fromRtpIp, m_fromRtpPort, m_to, m_toDomain, receiverIp, m_callId, senderMac, receiverMac, m_fromName, m_toName, m_userAgent, m_requestUri, ((m_attrSendonly == true) ? "present" : "not-present"), m_telephoneEventPayloadType);
 }
 
 //==========================================================
@@ -165,7 +165,7 @@ void SipByeInfo::ToString(CStdString& string)
 	char receiverIp[16];
 	inet_ntopV4(AF_INET, (void*)&m_receiverIp, receiverIp, sizeof(receiverIp));
 
-	string.Format("sender:%s rcvr:%s callid:%s from:%s to:%s fromDomain:%s toDomain:%s fromName:%s toName:%s", senderIp, receiverIp, m_callId, m_from, m_to, m_fromDomain, m_toDomain, m_fromName, m_toName);
+	string.Format("{'method':'BYE', 'sender':'%s', 'rcvr':'%s', 'callid':'%s', 'from':'%s', 'to':'%s', 'fromDomain':'%s', 'toDomain':'%s', 'fromName':'%s', 'toName':'%s', 'callId':'%s'}", senderIp, receiverIp, m_callId, m_from, m_to, m_fromDomain, m_toDomain, m_fromName, m_toName, m_callId);
 }
 
 //================================================

@@ -1655,7 +1655,6 @@ void VoIpSession::ReportSipInvite(SipInviteInfoRef& invite)
 		LOG4CXX_INFO(m_log, logMsg);
 		g_captureEventCallBack(event, m_capturePort);
 		
-
 		event.reset(new CaptureEvent());
 		event->m_type = CaptureEvent::EtDirection;
 		event->m_value = CaptureEvent::DirectionToString(m_direction);
@@ -2224,6 +2223,28 @@ void VoIpSessions::ReportSipInvite(SipInviteInfoRef& invite)
 	CStdString inviteString;
 	invite->ToString(inviteString);
 	LOG4CXX_INFO(m_log, "[" + trackingId + "] created by INVITE:" + inviteString);
+
+	CStdString _h = CONFIG.m_trackerHostname.front();
+	CStdString _t = "/" + CONFIG.m_trackerServicename + "/command";
+	auto const host = _h;
+    auto const port = boost::lexical_cast<CStdString>( CONFIG.m_trackerTcpPort);
+    auto const target = _t;
+
+	logMsg = "++++++++++++++++++++++++++++++++++++++++++++++++++++++++ HTTP POST " + host + ":" + port + target + "++++++++++++++++++++++++++++++++++++++++++++++++";
+	LOG4CXX_INFO(m_log, logMsg);
+
+	auto const _body = inviteString;
+
+    // The io_context is required for all I/O
+    net::io_context ioc;
+
+    // Launch the asynchronous operation
+    std::make_shared<httpclientasync>(ioc)->run(host, port, target, _body);
+
+	// Run the I/O service. The call will return when
+    // the get operation is complete.
+    ioc.run();
+
 }
 
 void VoIpSessions::ReportSipSubscribe(SipSubscribeInfoRef& subscribe)
@@ -2406,7 +2427,7 @@ void VoIpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 		//	LOG4CXX_INFO(m_log, "[" + session->m_trackingId + "] 200Ok RTP address not updated: " + session->m_ipAndPort + " " + logString );
 		}
 	}
-	if (info->m_mediaPort.empty()) { 
+	//if (info->m_mediaPort.empty()) { 
 
 
 			CStdString _h = CONFIG.m_trackerHostname.front();
@@ -2431,7 +2452,7 @@ void VoIpSessions::ReportSip200Ok(Sip200OkInfoRef info)
 		    // Run the I/O service. The call will return when
     		// the get operation is complete.
     		ioc.run();
-	}
+	//}
 
 	//else
 	//{
@@ -2448,6 +2469,29 @@ void VoIpSessions::ReportSipBye(SipByeInfoRef& bye)
 	{
 		// Session found: stop it
 		VoIpSessionRef session = pair->second;
+
+		CStdString _h = CONFIG.m_trackerHostname.front();
+		CStdString _t = "/" + CONFIG.m_trackerServicename + "/command";
+		auto const host = _h;
+    	auto const port = boost::lexical_cast<CStdString>( CONFIG.m_trackerTcpPort);
+    	auto const target = _t;
+		CStdString logMsg;
+		logMsg = "++++++++++++++++++++++++++++++++++++++++++++++++++++++++ HTTP POST " + host + ":" + port + target + "++++++++++++++++++++++++++++++++++++++++++++++++";
+		LOG4CXX_INFO(m_log, logMsg);
+
+		CStdString pload;
+		bye->ToString(pload);
+    	auto const _body = pload;
+
+    	// The io_context is required for all I/O
+    	net::io_context ioc;
+
+    	// Launch the asynchronous operation
+    	std::make_shared<httpclientasync>(ioc)->run(host, port, target, _body);
+
+		// Run the I/O service. The call will return when
+    	// the get operation is complete.
+    	ioc.run();
 
 		session->ReportSipBye(bye);
 		Stop(session);
