@@ -250,6 +250,7 @@ public:
 	void TaggingSipTransferCalls(VoIpSessionRef& session);
 	void CopyMetadataToNewSession(VoIpSessionRef& oldSession, VoIpSessionRef& newSession);
 	void ClearLocalPartyMap();
+	void PushSipEvent(CStdString& pload);
 
 private:
 	void CraftMediaAddress(CStdString& mediaAddress, struct in_addr ipAddress, unsigned short udpPort);
